@@ -35,7 +35,7 @@ describe("execute", () => {
     .then((finalState) => {
       expect(finalState).to.eql({
         references: [],
-        data: null
+        data: []
       })
     })
 
@@ -45,35 +45,33 @@ describe("execute", () => {
 describe("get", () => {
 
   before(() => {
-     nock('https://play.http.org')
-       .get('/demo/api/events')
-       .reply(200, { foo: 'bar' });
+     nock('https://www.example.com')
+       .get('/api/fake')
+       .reply(200, 'the response');
   })
 
-  it("calls the callback", () => {
+  it("adds response to state.data", () => {
     let state = {
       configuration: {
         username: "hello",
         password: "there",
-        baseUrl: 'https://play.http.org/demo'
-      }
+        baseUrl: 'https://www.example.com'
+      },
+      data: [
+        {"triggering": "event"}
+      ]
     };
 
     return execute(
-      get("api/events", {
-        callback: (response, state) => {
-          return { ...state, references: [response] }
-        },
-        username: null
-      })
+      get("/api/fake")
     )(state)
     .then((state) => {
-      let responseBody = state.references[0].response.body
-
-      // Check that the eventData made it's way to the request as a string.
-      expect(responseBody).
-        to.eql({foo: 'bar'})
-
+      console.log(state);
+      let responseBody = state.data
+      expect(responseBody).to.eql([
+        {triggering: 'event'},
+        'the response'
+      ])
     })
 
   })
