@@ -50,7 +50,7 @@ describe("get", () => {
        .reply(200, 'the response');
   })
 
-  it("adds response to state.data", () => {
+  it("get adds response to state.data", () => {
     let state = {
       configuration: {
         username: "hello",
