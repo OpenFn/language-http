@@ -1,9 +1,6 @@
 /** @module Adaptor */
-
 import { execute as commonExecute, expandReferences } from 'language-common';
-import { getThenPost, clientPost } from './Client';
 import request from 'request';
-import { resolve as resolveUrl } from 'url';
 
 /**
  * Execute a sequence of operations.
@@ -28,6 +25,11 @@ export function execute(...operations) {
 
 }
 
+function assembleError({ response, error }) {
+  if ([200,201,202].indexOf(response.statusCode) > -1) return false;
+  if (error) return error;
+  return new Error(`Server responded with ${response.statusCode}`)
+}
 
 /**
  * Make a GET request
@@ -49,12 +51,6 @@ export function execute(...operations) {
  * @returns {Operation}
  */
  export function get(path, params, callback) {
-
-   function assembleError({ response, error }) {
-     if ([200,201,202].indexOf(response.statusCode) > -1) return false;
-     if (error) return error;
-     return new Error(`Server responded with ${response.statusCode}`)
-   }
 
    return state => {
 
@@ -116,12 +112,6 @@ export function execute(...operations) {
  * @returns {Operation}
  */
  export function post(path, params, callback) {
-
-   function assembleError({ response, error }) {
-     if ([200,201,202].indexOf(response.statusCode) > -1) return false;
-     if (error) return error;
-     return new Error(`Server responded with ${response.statusCode}`)
-   }
 
    return state => {
 
@@ -185,12 +175,6 @@ export function execute(...operations) {
  */
 export function put(path, params, callback) {
 
-  function assembleError({ response, error }) {
-    if ([200,201,202,204].indexOf(response.statusCode) > -1) return false;
-    if (error) return error;
-    return new Error(`Server responded with ${response.statusCode}`)
-  }
-
   return state => {
 
     const { baseUrl, username, password, authType } = state.configuration;
@@ -252,12 +236,6 @@ export function put(path, params, callback) {
  */
 export function patch(path, params, callback) {
 
-  function assembleError({ response, error }) {
-    if ([200,201,202,204].indexOf(response.statusCode) > -1) return false;
-    if (error) return error;
-    return new Error(`Server responded with ${response.statusCode}`)
-  }
-
   return state => {
 
     const { baseUrl, username, password, authType } = state.configuration;
@@ -317,12 +295,6 @@ export function patch(path, params, callback) {
  * @returns {Operation}
  */
 export function del(path, params, callback) {
-
-  function assembleError({ response, error }) {
-    if ([200,201,202,204].indexOf(response.statusCode) > -1) return false;
-    if (error) return error;
-    return new Error(`Server responded with ${response.statusCode}`)
-  }
 
   return state => {
 

@@ -1,7 +1,7 @@
 {
   "name": "language-http",
   "version": "1.0.0",
-  "description": "An HTTP Language Pack for OpenFn",
+  "description": "An HTTP request language package for use with Open Function",
   "main": "lib/index.js",
   "scripts": {
     "build": "make",
