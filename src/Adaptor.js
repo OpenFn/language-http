@@ -1,6 +1,7 @@
 /** @module Adaptor */
 import request from 'request';
-import { assembleError, tryJson } from './Utils';
+import { tryJson } from './Utils';
+import { req } from './Client';
 import { execute as commonExecute, expandReferences } from 'language-common';
 
 /**
@@ -60,22 +61,7 @@ export function execute(...operations) {
        'sendImmediately': (authType != 'digest')
      }
 
-     return new Promise((resolve, reject) => {
-       request.get({
-         url,
-         qs: query,
-         auth,
-         headers
-       }, function(error, response, body){
-         error = assembleError({error, response})
-         if (error) {
-           reject(error);
-         } else {
-           console.log("\x1b[32m%s\x1b[0m", "✓ GET request succeeded.");
-           resolve(body)
-         }
-       });
-     })
+     req("GET", {url, query, auth, headers})
      .then((response) => {
        const nextState = {
          ...state,
@@ -123,23 +109,7 @@ export function execute(...operations) {
        'sendImmediately': (authType != 'digest')
      }
 
-     return new Promise((resolve, reject) => {
-       request.post({
-         url,
-         qs: query,
-         json: body,
-         auth,
-         headers
-       }, function(error, response, body){
-         error = assembleError({error, response})
-         if (error) {
-           reject(error);
-         } else {
-           console.log("\x1b[32m%s\x1b[0m", "✓ POST request succeeded.");
-           resolve(body)
-         }
-       });
-     })
+     req("POST", {url, query, body, auth, headers})
      .then((response) => {
        // TODO: Decide if response goes to head or tail of the data array...
        const nextState = { ...state, data: [ ...state.data, response ] }
@@ -185,23 +155,7 @@ export function put(path, params, callback) {
       'sendImmediately': (authType != 'digest')
     }
 
-    return new Promise((resolve, reject) => {
-      request.put({
-        url,
-        qs: query,
-        json: body,
-        auth,
-        headers
-      }, function(error, response, body){
-        error = assembleError({error, response})
-        if (error) {
-          reject(error);
-        } else {
-          console.log("\x1b[32m%s\x1b[0m", "✓ PUT request succeeded.");
-          resolve(body)
-        }
-      });
-    })
+    req("PUT", {url, query, body, auth, headers})
     .then((response) => {
       // TODO: Decide if response goes to head or tail of the data array...
       const nextState = { ...state, data: [ ...state.data, response ] }
@@ -246,23 +200,7 @@ export function patch(path, params, callback) {
       'sendImmediately': (authType != 'digest')
     }
 
-    return new Promise((resolve, reject) => {
-      request.patch({
-        url,
-        qs: query,
-        json: body,
-        auth,
-        headers
-      }, function(error, response, body){
-        error = assembleError({error, response})
-        if (error) {
-          reject(error);
-        } else {
-          console.log("\x1b[32m%s\x1b[0m", "✓ PATCH request succeeded.");
-          resolve(body)
-        }
-      });
-    })
+    req("PATCH", {url, query, body, auth, headers})
     .then((response) => {
       // TODO: Decide if response goes to head or tail of the data array...
       const nextState = { ...state, data: [ ...state.data, response ] }
@@ -306,23 +244,7 @@ export function del(path, params, callback) {
       'sendImmediately': (authType != 'digest')
     }
 
-    return new Promise((resolve, reject) => {
-      request.delete({
-        url,
-        qs: query,
-        json: body,
-        auth,
-        headers
-      }, function(error, response, body){
-        error = assembleError({error, response})
-        if (error) {
-          reject(error);
-        } else {
-          console.log("\x1b[32m%s\x1b[0m", "✓ DELETE request succeeded.");
-          resolve(body)
-        }
-      });
-    })
+    req("DELETE", {url, query, body, auth, headers})
     .then((response) => {
       // TODO: Decide if response goes to head or tail of the data array...
       const nextState = { ...state, data: [ ...state.data, response ] }
