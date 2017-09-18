@@ -46,8 +46,11 @@ describe("get", () => {
 
   before(() => {
      nock('https://www.example.com')
-       .get('/api/fake')
-       .reply(200, 'the response');
+     .get('/api/fake')
+     .reply(200, {
+       httpStatus:'OK',
+       message: 'the response'
+     });
   })
 
   it("get adds response to state.data", () => {

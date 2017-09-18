@@ -1,6 +1,7 @@
 /** @module Adaptor */
-import { execute as commonExecute, expandReferences } from 'language-common';
 import request from 'request';
+import { assembleError, tryJson } from './Utils';
+import { execute as commonExecute, expandReferences } from 'language-common';
 
 /**
  * Execute a sequence of operations.
@@ -23,12 +24,6 @@ export function execute(...operations) {
     return commonExecute(...operations)({ ...initialState, ...state })
   };
 
-}
-
-function assembleError({ response, error }) {
-  if ([200,201,202].indexOf(response.statusCode) > -1) return false;
-  if (error) return error;
-  return new Error(`Server responded with ${response.statusCode}`)
 }
 
 /**
@@ -82,8 +77,10 @@ function assembleError({ response, error }) {
        });
      })
      .then((response) => {
-       // TODO: Decide if response goes to head or tail of the data array...
-       const nextState = { ...state, data: [ ...state.data, response ] }
+       const nextState = {
+         ...state,
+         data: [ ...state.data, tryJson(response.body) ]
+       }
        if (callback) return callback(nextState);
        return nextState;
      })
