@@ -46,32 +46,32 @@ describe("get", () => {
 
   before(() => {
      nock('https://www.example.com')
-       .get('/api/fake')
-       .reply(200, 'the response');
+     .get('/api/fake')
+     .reply(200, {
+       httpStatus:'OK',
+       message: 'the response'
+     });
   })
 
-  it("adds response to state.data", () => {
+  it("prepares nextState properly", () => {
     let state = {
       configuration: {
         username: "hello",
         password: "there",
         baseUrl: 'https://www.example.com'
       },
-      data: [
-        {"triggering": "event"}
-      ]
+      data: {
+        "triggering": "event"
+      }
     };
 
     return execute(
-      get("/api/fake")
+      get("/api/fake", {})
     )(state)
-    .then((state) => {
-      console.log(state);
-      let responseBody = state.data
-      expect(responseBody).to.eql([
-        {triggering: 'event'},
-        'the response'
-      ])
+    .then((nextState) => {
+      const { data, references } =  nextState;
+      expect(data).to.eql({ httpStatus: 'OK', message: 'the response' })
+      expect(references).to.eql([{ "triggering": "event" }])
     })
 
   })

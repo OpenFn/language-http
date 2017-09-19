@@ -1,6 +1,10 @@
 /** @module Adaptor */
-import { execute as commonExecute, expandReferences } from 'language-common';
-import request from 'request';
+import { req } from './Client';
+import {
+  execute as commonExecute,
+  expandReferences,
+  composeNextState
+} from 'language-common';
 
 /**
  * Execute a sequence of operations.
@@ -16,19 +20,14 @@ import request from 'request';
  */
 export function execute(...operations) {
   const initialState = {
-    data: []
+    references: [],
+    data: null
   }
 
   return state => {
     return commonExecute(...operations)({ ...initialState, ...state })
   };
 
-}
-
-function assembleError({ response, error }) {
-  if ([200,201,202].indexOf(response.statusCode) > -1) return false;
-  if (error) return error;
-  return new Error(`Server responded with ${response.statusCode}`)
 }
 
 /**
@@ -65,25 +64,9 @@ function assembleError({ response, error }) {
        'sendImmediately': (authType != 'digest')
      }
 
-     return new Promise((resolve, reject) => {
-       request.get({
-         url,
-         qs: query,
-         auth,
-         headers
-       }, function(error, response, body){
-         error = assembleError({error, response})
-         if (error) {
-           reject(error);
-         } else {
-           console.log("\x1b[32m%s\x1b[0m", "✓ GET request succeeded.");
-           resolve(body)
-         }
-       });
-     })
+     return req("GET", {url, query, auth, headers})
      .then((response) => {
-       // TODO: Decide if response goes to head or tail of the data array...
-       const nextState = { ...state, data: [ ...state.data, response ] }
+       const nextState = composeNextState(state, response)
        if (callback) return callback(nextState);
        return nextState;
      })
@@ -126,26 +109,9 @@ function assembleError({ response, error }) {
        'sendImmediately': (authType != 'digest')
      }
 
-     return new Promise((resolve, reject) => {
-       request.post({
-         url,
-         qs: query,
-         json: body,
-         auth,
-         headers
-       }, function(error, response, body){
-         error = assembleError({error, response})
-         if (error) {
-           reject(error);
-         } else {
-           console.log("\x1b[32m%s\x1b[0m", "✓ POST request succeeded.");
-           resolve(body)
-         }
-       });
-     })
+     return req("POST", {url, query, body, auth, headers})
      .then((response) => {
-       // TODO: Decide if response goes to head or tail of the data array...
-       const nextState = { ...state, data: [ ...state.data, response ] }
+       const nextState = composeNextState(state, response)
        if (callback) return callback(nextState);
        return nextState;
      })
@@ -188,26 +154,9 @@ export function put(path, params, callback) {
       'sendImmediately': (authType != 'digest')
     }
 
-    return new Promise((resolve, reject) => {
-      request.put({
-        url,
-        qs: query,
-        json: body,
-        auth,
-        headers
-      }, function(error, response, body){
-        error = assembleError({error, response})
-        if (error) {
-          reject(error);
-        } else {
-          console.log("\x1b[32m%s\x1b[0m", "✓ PUT request succeeded.");
-          resolve(body)
-        }
-      });
-    })
+    return req("PUT", {url, query, body, auth, headers})
     .then((response) => {
-      // TODO: Decide if response goes to head or tail of the data array...
-      const nextState = { ...state, data: [ ...state.data, response ] }
+      const nextState = composeNextState(state, response)
       if (callback) return callback(nextState);
       return nextState;
     })
@@ -249,26 +198,9 @@ export function patch(path, params, callback) {
       'sendImmediately': (authType != 'digest')
     }
 
-    return new Promise((resolve, reject) => {
-      request.patch({
-        url,
-        qs: query,
-        json: body,
-        auth,
-        headers
-      }, function(error, response, body){
-        error = assembleError({error, response})
-        if (error) {
-          reject(error);
-        } else {
-          console.log("\x1b[32m%s\x1b[0m", "✓ PATCH request succeeded.");
-          resolve(body)
-        }
-      });
-    })
+    return req("PATCH", {url, query, body, auth, headers})
     .then((response) => {
-      // TODO: Decide if response goes to head or tail of the data array...
-      const nextState = { ...state, data: [ ...state.data, response ] }
+      const nextState = composeNextState(state, response)
       if (callback) return callback(nextState);
       return nextState;
     })
@@ -309,30 +241,23 @@ export function del(path, params, callback) {
       'sendImmediately': (authType != 'digest')
     }
 
-    return new Promise((resolve, reject) => {
-      request.delete({
-        url,
-        qs: query,
-        json: body,
-        auth,
-        headers
-      }, function(error, response, body){
-        error = assembleError({error, response})
-        if (error) {
-          reject(error);
-        } else {
-          console.log("\x1b[32m%s\x1b[0m", "✓ DELETE request succeeded.");
-          resolve(body)
-        }
-      });
-    })
+    return req("DELETE", {url, query, body, auth, headers})
     .then((response) => {
-      // TODO: Decide if response goes to head or tail of the data array...
-      const nextState = { ...state, data: [ ...state.data, response ] }
+      const nextState = composeNextState(state, response)
       if (callback) return callback(nextState);
       return nextState;
     })
   }
 }
 
-export * from 'language-common';
+export {
+  alterState,
+  dataPath,
+  dataValue,
+  each,
+  field,
+  fields,
+  lastReferenceValue,
+  merge,
+  sourceValue,
+} from 'language-common';
