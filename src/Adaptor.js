@@ -2,7 +2,7 @@
 import request from 'request';
 import { tryJson } from './Utils';
 import { req } from './Client';
-import { execute as commonExecute, expandReferences } from 'language-common';
+import { execute as commonExecute, tryJson, nextState, expandReferences } from 'language-common';
 
 /**
  * Execute a sequence of operations.
@@ -18,7 +18,8 @@ import { execute as commonExecute, expandReferences } from 'language-common';
  */
 export function execute(...operations) {
   const initialState = {
-    data: []
+    references: [],
+    data: null
   }
 
   return state => {
@@ -63,10 +64,7 @@ export function execute(...operations) {
 
      req("GET", {url, query, auth, headers})
      .then((response) => {
-       const nextState = {
-         ...state,
-         data: [ ...state.data, tryJson(response.body) ]
-       }
+       const nextState = nextState(state, tryJson(response))
        if (callback) return callback(nextState);
        return nextState;
      })
@@ -111,8 +109,7 @@ export function execute(...operations) {
 
      req("POST", {url, query, body, auth, headers})
      .then((response) => {
-       // TODO: Decide if response goes to head or tail of the data array...
-       const nextState = { ...state, data: [ ...state.data, response ] }
+       const nextState = nextState(state, tryJson(response))
        if (callback) return callback(nextState);
        return nextState;
      })
@@ -157,8 +154,7 @@ export function put(path, params, callback) {
 
     req("PUT", {url, query, body, auth, headers})
     .then((response) => {
-      // TODO: Decide if response goes to head or tail of the data array...
-      const nextState = { ...state, data: [ ...state.data, response ] }
+      const nextState = nextState(state, tryJson(response))
       if (callback) return callback(nextState);
       return nextState;
     })
@@ -202,8 +198,7 @@ export function patch(path, params, callback) {
 
     req("PATCH", {url, query, body, auth, headers})
     .then((response) => {
-      // TODO: Decide if response goes to head or tail of the data array...
-      const nextState = { ...state, data: [ ...state.data, response ] }
+      const nextState = nextState(state, tryJson(response))
       if (callback) return callback(nextState);
       return nextState;
     })
@@ -246,8 +241,7 @@ export function del(path, params, callback) {
 
     req("DELETE", {url, query, body, auth, headers})
     .then((response) => {
-      // TODO: Decide if response goes to head or tail of the data array...
-      const nextState = { ...state, data: [ ...state.data, response ] }
+      const nextState = nextState(state, tryJson(response))
       if (callback) return callback(nextState);
       return nextState;
     })
