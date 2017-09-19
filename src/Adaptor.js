@@ -1,8 +1,10 @@
 /** @module Adaptor */
-import request from 'request';
-import { tryJson } from './Utils';
 import { req } from './Client';
-import { execute as commonExecute, tryJson, nextState, expandReferences } from 'language-common';
+import {
+  execute as commonExecute,
+  expandReferences,
+  composeNextState
+} from 'language-common';
 
 /**
  * Execute a sequence of operations.
@@ -62,9 +64,9 @@ export function execute(...operations) {
        'sendImmediately': (authType != 'digest')
      }
 
-     req("GET", {url, query, auth, headers})
+     return req("GET", {url, query, auth, headers})
      .then((response) => {
-       const nextState = nextState(state, tryJson(response))
+       const nextState = composeNextState(state, response)
        if (callback) return callback(nextState);
        return nextState;
      })
@@ -107,9 +109,9 @@ export function execute(...operations) {
        'sendImmediately': (authType != 'digest')
      }
 
-     req("POST", {url, query, body, auth, headers})
+     return req("POST", {url, query, body, auth, headers})
      .then((response) => {
-       const nextState = nextState(state, tryJson(response))
+       const nextState = composeNextState(state, response)
        if (callback) return callback(nextState);
        return nextState;
      })
@@ -152,9 +154,9 @@ export function put(path, params, callback) {
       'sendImmediately': (authType != 'digest')
     }
 
-    req("PUT", {url, query, body, auth, headers})
+    return req("PUT", {url, query, body, auth, headers})
     .then((response) => {
-      const nextState = nextState(state, tryJson(response))
+      const nextState = composeNextState(state, response)
       if (callback) return callback(nextState);
       return nextState;
     })
@@ -196,9 +198,9 @@ export function patch(path, params, callback) {
       'sendImmediately': (authType != 'digest')
     }
 
-    req("PATCH", {url, query, body, auth, headers})
+    return req("PATCH", {url, query, body, auth, headers})
     .then((response) => {
-      const nextState = nextState(state, tryJson(response))
+      const nextState = composeNextState(state, response)
       if (callback) return callback(nextState);
       return nextState;
     })
@@ -239,13 +241,23 @@ export function del(path, params, callback) {
       'sendImmediately': (authType != 'digest')
     }
 
-    req("DELETE", {url, query, body, auth, headers})
+    return req("DELETE", {url, query, body, auth, headers})
     .then((response) => {
-      const nextState = nextState(state, tryJson(response))
+      const nextState = composeNextState(state, response)
       if (callback) return callback(nextState);
       return nextState;
     })
   }
 }
 
-export * from 'language-common';
+export {
+  alterState,
+  dataPath,
+  dataValue,
+  each,
+  field,
+  fields,
+  lastReferenceValue,
+  merge,
+  sourceValue,
+} from 'language-common';

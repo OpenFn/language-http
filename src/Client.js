@@ -1,5 +1,5 @@
 import request from 'request'
-import { assembleError } from './Utils';
+import { assembleError, tryJson } from './Utils';
 
 export function req( method, { url, headers, body, auth, query } ) {
   return new Promise((resolve, reject) => {
@@ -16,7 +16,9 @@ export function req( method, { url, headers, body, auth, query } ) {
         reject(error);
       } else {
         console.log("\x1b[32m%s\x1b[0m", `✓ ${method} succeeded.`);
-        resolve(body);
+        resolve(
+          tryJson(body)
+        );
       }
     })
   })
