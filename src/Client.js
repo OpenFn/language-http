@@ -1,64 +1,25 @@
 import request from 'request'
+import { assembleError, tryJson } from './Utils';
 
-export function clientPost({ username, password, body, url }) {
+export function req( method, { url, headers, body, auth, query } ) {
   return new Promise((resolve, reject) => {
-    request.post ({
-      url: url,
+    request ({
+      url,
+      headers,
+      auth,
+      qs: query,
+      method: method,
       json: body
     }, function(error, response, body){
+      error = assembleError({error, response})
       if(error) {
         reject(error);
       } else {
-        console.log("POST succeeded.");
-        resolve(body);
+        console.log("\x1b[32m%s\x1b[0m", `✓ ${method} succeeded.`);
+        resolve(
+          tryJson(body)
+        );
       }
     })
-  })
-}
-
-export function getThenPost({ username, password, query, url, sendImmediately, postUrl }) {
-
-  function assembleError({ response, error }) {
-    if (response && ([200,201,202].indexOf(response.statusCode) > -1)) return false;
-    if (error) return error;
-    return new Error(`Server responded with ${response.statusCode}`)
-  }
-
-  return new Promise((resolve, reject) => {
-
-    request({
-      url: url, //URL to hit
-      qs: query, //Query string data
-      method: 'GET', //Specify the method
-      'auth': {
-        'user': username,
-        'pass': password,
-        'sendImmediately': sendImmediately
-      }
-    }, function(error, response, getResponseBody){
-      error = assembleError({error, response})
-      if (error) {
-        console.error("GET failed.")
-        console.log(response)
-        reject(error);
-      } else {
-        console.log("GET succeeded.");
-        console.log(response)
-        console.log(getResponseBody)
-        request.post ({
-          url: postUrl,
-          json: JSON.parse(getResponseBody)
-        }, function(error, response, postResponseBody){
-          error = assembleError({error, response})
-          if (error) {
-            console.error("POST failed.")
-            reject(error);
-          } else {
-            console.log("POST succeeded.");
-            resolve(getResponseBody);
-          }
-        })
-      }
-    });
   })
 }

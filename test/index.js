@@ -1,11 +1,8 @@
-import { expect } from 'chai';
-
-import nock from 'nock';
-import ClientFixtures, { fixtures } from './ClientFixtures'
-
 import Adaptor from '../src';
-const { execute, event, dataElement, get } = Adaptor;
+import { expect } from 'chai';
+import nock from 'nock';
 
+const { execute, get } = Adaptor;
 
 describe("execute", () => {
 
@@ -21,12 +18,12 @@ describe("execute", () => {
     .then((finalState) => {
       expect(finalState).to.eql({ counter: 3 })
     })
-    .then(done).catch(done)
-
+    .then(done)
+    .catch(done)
 
   })
 
-  it("assigns references, data to the initialState", () => {
+  it("assigns references, data to the initialState", (done) => {
     let state = {}
 
     let finalState = execute()(state)
@@ -38,6 +35,8 @@ describe("execute", () => {
         data: null
       })
     })
+    .then(done)
+    .catch(done)
 
   })
 })
@@ -45,35 +44,33 @@ describe("execute", () => {
 describe("get", () => {
 
   before(() => {
-     nock('https://play.http.org')
-       .get('/demo/api/events')
-       .reply(200, { foo: 'bar' });
+     nock('https://www.example.com')
+     .get('/api/fake')
+     .reply(200, {
+       httpStatus:'OK',
+       message: 'the response'
+     });
   })
 
-  it("calls the callback", () => {
+  it("prepares nextState properly", () => {
     let state = {
       configuration: {
         username: "hello",
         password: "there",
-        baseUrl: 'https://play.http.org/demo'
+        baseUrl: 'https://www.example.com'
+      },
+      data: {
+        "triggering": "event"
       }
     };
 
     return execute(
-      get("api/events", {
-        callback: (response, state) => {
-          return { ...state, references: [response] }
-        },
-        username: null
-      })
+      get("/api/fake", {})
     )(state)
-    .then((state) => {
-      let responseBody = state.references[0].response.body
-
-      // Check that the eventData made it's way to the request as a string.
-      expect(responseBody).
-        to.eql({foo: 'bar'})
-
+    .then((nextState) => {
+      const { data, references } =  nextState;
+      expect(data).to.eql({ httpStatus: 'OK', message: 'the response' })
+      expect(references).to.eql([{ "triggering": "event" }])
     })
 
   })

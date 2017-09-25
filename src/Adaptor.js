@@ -1,9 +1,10 @@
-import { execute as commonExecute, expandReferences } from 'language-common';
-import { getThenPost, clientPost } from './Client';
-import request from 'request';
-import { resolve as resolveUrl } from 'url';
-
 /** @module Adaptor */
+import { req } from './Client';
+import {
+  execute as commonExecute,
+  expandReferences,
+  composeNextState
+} from 'language-common';
 
 /**
  * Execute a sequence of operations.
@@ -13,7 +14,7 @@ import { resolve as resolveUrl } from 'url';
  *   create('foo'),
  *   delete('bar')
  * )(state)
- * @constructor
+ * @function
  * @param {Operations} operations - Operations to be performed.
  * @returns {Operation}
  */
@@ -30,245 +31,219 @@ export function execute(...operations) {
 }
 
 /**
- * Make a GET request and POST it somewhere else
+ * Make a GET request
+ * @public
  * @example
- * execute(
- *   fetch(params)
- * )(state)
- * @constructor
- * @param {object} params - data to make the fetch
+ *  get("/myendpoint", {
+ *      query: {foo: "bar", a: 1},
+ *      headers: {"content-type": "application/json"},
+ *      authentication: {username: "user", password: "pass"}
+ *    },
+ *    function(state) {
+ *      return state;
+ *    }
+ *  )
+ * @function
+ * @param {string} path - Path to resource
+ * @param {object} params - Query, Headers and Authentication parameters
+ * @param {function} callback - (Optional) Callback function
  * @returns {Operation}
  */
-export function fetch(params) {
+ export function get(path, params, callback) {
 
-  return state => {
+   return state => {
 
-    const { getEndpoint, query, postUrl } = expandReferences(params)(state);
+     const { baseUrl, username, password, authType } = state.configuration;
+     const url = ( baseUrl ? baseUrl + path : path );
 
-    const { username, password, baseUrl, authType } = state.configuration;
+     const { query, headers, authentication } = expandReferences(params)(state);
 
-    var sendImmediately = authType == 'digest' ? false : true;
+     const auth = authentication || {
+       'username': username,
+       'password': password,
+       'sendImmediately': (authType != 'digest')
+     }
 
-    const url = resolveUrl(baseUrl + '/', getEndpoint)
+     return req("GET", {url, query, auth, headers})
+     .then((response) => {
+       const nextState = composeNextState(state, response)
+       if (callback) return callback(nextState);
+       return nextState;
+     })
 
-    console.log("Fetching data from URL: " + url);
-    console.log("Applying query: " + JSON.stringify(query))
+   }
+ }
 
-    return getThenPost({ username, password, query, url, sendImmediately, postUrl })
-    .then((response) => {
-      console.log("Success:", response);
-      let result = (typeof response === 'object') ? response : JSON.parse(response);
-      return { ...state, references: [ result, ...state.references ] }
-    }).then((data) => {
-      const nextState = { ...state, response: { body: data } };
-      if (callback) return callback(nextState);
-      return nextState;
-    })
-
-  }
-}
-
-/**
- * Make a GET request and POST the response somewhere else without failing.
- */
-export function fetchWithErrors(params) {
-
-  return state => {
-
-    const { getEndpoint, query, externalId, postUrl } = expandReferences(params)(state);
-
-    const { username, password, baseUrl, authType } = state.configuration;
-
-    var sendImmediately = authType == 'digest' ? false : true;
-
-    const url = resolveUrl(baseUrl + '/', getEndpoint)
-
-    console.log("Performing an error-less GET on URL: " + url);
-    console.log("Applying query: " + JSON.stringify(query))
-
-    function assembleError({ response, error }) {
-      if (response && ([200,201,202].indexOf(response.statusCode) > -1)) return false;
-      if (error) return error;
-      return new Error(`Server responded with ${response.statusCode}`)
-    }
-
-    return new Promise((resolve, reject) => {
-
-      request({
-        url: url,      //URL to hit
-        qs: query,     //Query string data
-        method: 'GET', //Specify the method
-        auth: {
-          'user': username,
-          'pass': password,
-          'sendImmediately': sendImmediately
-        }
-      }, function(error, response, body){
-        var taggedResponse = {
-          response: response,
-          externalId: externalId
-        }
-        console.log(taggedResponse)
-        request.post ({
-          url: postUrl,
-          json: taggedResponse
-        }, function(error, response, postResponseBody){
-          error = assembleError({error, response})
-          if (error) {
-            console.error("POST failed.")
-            reject(error);
-          } else {
-            console.log("POST succeeded.");
-            resolve(body);
-          }
-        })
-      });
-
-    }).then((data) => {
-      const nextState = { ...state, response: { body: data } };
-      return nextState;
-    })
-  }
-}
 
 /**
  * Make a POST request
+ * @public
  * @example
- * execute(
- *   post(params)
- * )(state)
- * @constructor
- * @param {object} params - data to make the POST
+ *  post("/myendpoint", {
+ *      body: {"foo": "bar"},
+ *      headers: {"content-type": "json"},
+ *      authentication: {username: "user", password: "pass"},
+ *    },
+ *    function(state) {
+ *      return state;
+ *    }
+ *  )
+ * @function
+ * @param {string} path - Path to resource
+ * @param {object} params - Body, Query, Headers and Authentication parameters
+ * @param {function} callback - (Optional) Callback function
  * @returns {Operation}
  */
-export function post(url, {body, callback, headers}) {
+ export function post(path, params, callback) {
 
-  return state => {
+   return state => {
 
-    return new Promise((resolve, reject) => {
-      request.post ({
-        url: url,
-        json: body,
-        headers
-      }, function(error, response, body){
-        if(error) {
-          reject(error);
-        } else {
-          console.log("POST succeeded.");
-          resolve(body);
-        }
-      })
-    }).then((data) => {
-      const nextState = { ...state, response: { body: data } };
-      if (callback) return callback(nextState);
-      return nextState;
-    })
+     const { baseUrl, username, password, authType } = state.configuration;
+     const url = ( baseUrl ? baseUrl + path : path );
 
-  }
-}
+     const { query, headers, authentication, body } = expandReferences(params)(state);
 
-/*
-* Make a POST request using existing data from another POST
-*/
+     const auth = authentication || {
+       'username': username,
+       'password': password,
+       'sendImmediately': (authType != 'digest')
+     }
 
-export function postData(params) {
+     return req("POST", {url, query, body, auth, headers})
+     .then((response) => {
+       const nextState = composeNextState(state, response)
+       if (callback) return callback(nextState);
+       return nextState;
+     })
 
-  return state => {
-
-    function assembleError({ response, error }) {
-      if (response && ([200,201,202].indexOf(response.statusCode) > -1)) return false;
-      if (error) return error;
-      return new Error(`Server responded with ${response.statusCode}`)
-    }
-
-    const { url, body, headers } = expandReferences(params)(state);
-
-    return new Promise((resolve, reject) => {
-      console.log("Request body:");
-      console.log("\n" + JSON.stringify(body, null, 4) + "\n");
-      request.post ({
-        url: url,
-        json: body,
-        headers
-      }, function(error, response, body){
-        error = assembleError({error, response})
-        if(error) {
-          reject(error);
-          console.log(response);
-        } else {
-          console.log("Printing response...\n");
-          console.log(JSON.stringify(response, null, 4) + "\n");
-          console.log("POST succeeded.");
-          resolve(body);
-        }
-      })
-    }).then((data) => {
-      const nextState = { ...state, response: { body: data } };
-      return nextState;
-    })
-
-  }
-
-}
-
-
-
+   }
+ }
 
 
 /**
- * Make a GET request
+ * Make a PUT request
+ * @public
  * @example
- * execute(
- *   get("my/endpoint", {
- *     callback: function(data, state) {
- *       return state;
- *     }
- *   })
- * )(state)
- * @constructor
- * @param {string} url - Path to resource
- * @param {object} params - callback and query parameters
+ *  put("/myendpoint", {
+ *      body: {"foo": "bar"},
+ *      headers: {"content-type": "json"},
+ *      authentication: {username: "user", password: "pass"},
+ *    },
+ *    function(state) {
+ *      return state;
+ *    }
+ *  )
+ * @function
+ * @param {string} path - Path to resource
+ * @param {object} params - Body, Query, Headers and Auth parameters
+ * @param {function} callback - (Optional) Callback function
  * @returns {Operation}
  */
-export function get(path, {query, callback}) {
-  function assembleError({ response, error }) {
-    if ([200,201,202].indexOf(response.statusCode) > -1) return false;
-    if (error) return error;
-
-    return new Error(`Server responded with ${response.statusCode}`)
-  }
+export function put(path, params, callback) {
 
   return state => {
 
-    const { username, password, baseUrl, authType } = state.configuration;
-    const { query: qs } = expandReferences({query})(state);
+    const { baseUrl, username, password, authType } = state.configuration;
+    const url = ( baseUrl ? baseUrl + path : path );
 
-    const sendImmediately = (authType != 'digest');
+    const { query, headers, authentication, body } = expandReferences(params)(state);
 
-    const url = resolveUrl(baseUrl + '/', path)
+    const auth = authentication || {
+      'username': username,
+      'password': password,
+      'sendImmediately': (authType != 'digest')
+    }
 
-    return new Promise((resolve, reject) => {
+    return req("PUT", {url, query, body, auth, headers})
+    .then((response) => {
+      const nextState = composeNextState(state, response)
+      if (callback) return callback(nextState);
+      return nextState;
+    })
+  }
+}
 
-      request({
-        url,      //URL to hit
-        qs,     //Query string data
-        method: 'GET', //Specify the method
-        auth: {
-          'user': username,
-          'pass': password,
-          'sendImmediately': sendImmediately
-        }
-      }, function(error, response, body){
-        error = assembleError({error, response})
-        if (error) {
-          reject(error);
-        } else {
-          resolve(JSON.parse(body))
-        }
-      });
 
-    }).then((data) => {
-      const nextState = { ...state, response: { body: data } };
+/**
+ * Make a PATCH request
+ * @public
+ * @example
+ *  patch("/myendpoint", {
+ *      body: {"foo": "bar"},
+ *      headers: {"content-type": "json"},
+ *      authentication: {username: "user", password: "pass"},
+ *    },
+ *    function(state) {
+ *      return state;
+ *    }
+ *  )
+ * @function
+ * @param {string} path - Path to resource
+ * @param {object} params - Body, Query, Headers and Auth parameters
+ * @param {function} callback - (Optional) Callback function
+ * @returns {Operation}
+ */
+export function patch(path, params, callback) {
+
+  return state => {
+
+    const { baseUrl, username, password, authType } = state.configuration;
+    const url = ( baseUrl ? baseUrl + path : path );
+
+    const { query, headers, authentication, body } = expandReferences(params)(state);
+
+    const auth = authentication || {
+      'username': username,
+      'password': password,
+      'sendImmediately': (authType != 'digest')
+    }
+
+    return req("PATCH", {url, query, body, auth, headers})
+    .then((response) => {
+      const nextState = composeNextState(state, response)
+      if (callback) return callback(nextState);
+      return nextState;
+    })
+  }
+}
+
+/**
+ * Make a DELETE request
+ * @public
+ * @example
+ *  del("/myendpoint", {
+ *      body: {"foo": "bar"},
+ *      headers: {"content-type": "json"},
+ *      authentication: {username: "user", password: "pass"},
+ *    },
+ *    function(state) {
+ *      return state;
+ *    }
+ *  )
+ * @function
+ * @param {string} path - Path to resource
+ * @param {object} params - Body, Query, Headers and Auth parameters
+ * @param {function} callback - (Optional) Callback function
+ * @returns {Operation}
+ */
+export function del(path, params, callback) {
+
+  return state => {
+
+    const { baseUrl, username, password, authType } = state.configuration;
+    const url = ( baseUrl ? baseUrl + path : path );
+
+    const { query, headers, authentication, body } = expandReferences(params)(state);
+
+    const auth = authentication || {
+      'username': username,
+      'password': password,
+      'sendImmediately': (authType != 'digest')
+    }
+
+    return req("DELETE", {url, query, body, auth, headers})
+    .then((response) => {
+      const nextState = composeNextState(state, response)
       if (callback) return callback(nextState);
       return nextState;
     })
@@ -276,6 +251,13 @@ export function get(path, {query, callback}) {
 }
 
 export {
-  field, fields, sourceValue, alterState, each,
-  merge, dataPath, dataValue, lastReferenceValue
+  alterState,
+  dataPath,
+  dataValue,
+  each,
+  field,
+  fields,
+  lastReferenceValue,
+  merge,
+  sourceValue,
 } from 'language-common';
