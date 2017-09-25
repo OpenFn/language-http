@@ -1,5 +1,6 @@
 /** @module Adaptor */
 import { req } from './Client';
+import { setAuth } from './Utils';
 import {
   execute as commonExecute,
   expandReferences,
@@ -53,16 +54,12 @@ export function execute(...operations) {
 
    return state => {
 
-     const { baseUrl, username, password, authType } = state.configuration;
+     const { baseUrl } = state.configuration;
      const url = ( baseUrl ? baseUrl + path : path );
 
      const { query, headers, authentication } = expandReferences(params)(state);
 
-     const auth = authentication || {
-       'username': username,
-       'password': password,
-       'sendImmediately': (authType != 'digest')
-     }
+     const auth = setAuth(state.configuration, authentication);
 
      return req("GET", {url, query, auth, headers})
      .then((response) => {
@@ -103,11 +100,7 @@ export function execute(...operations) {
 
      const { query, headers, authentication, body } = expandReferences(params)(state);
 
-     const auth = authentication || {
-       'username': username,
-       'password': password,
-       'sendImmediately': (authType != 'digest')
-     }
+     const auth = setAuth(state.configuration, authentication);
 
      return req("POST", {url, query, body, auth, headers})
      .then((response) => {
@@ -148,11 +141,7 @@ export function put(path, params, callback) {
 
     const { query, headers, authentication, body } = expandReferences(params)(state);
 
-    const auth = authentication || {
-      'username': username,
-      'password': password,
-      'sendImmediately': (authType != 'digest')
-    }
+    const auth = setAuth(state.configuration, authentication);
 
     return req("PUT", {url, query, body, auth, headers})
     .then((response) => {
@@ -192,11 +181,7 @@ export function patch(path, params, callback) {
 
     const { query, headers, authentication, body } = expandReferences(params)(state);
 
-    const auth = authentication || {
-      'username': username,
-      'password': password,
-      'sendImmediately': (authType != 'digest')
-    }
+    const auth = setAuth(state.configuration, authentication);
 
     return req("PATCH", {url, query, body, auth, headers})
     .then((response) => {
@@ -235,11 +220,7 @@ export function del(path, params, callback) {
 
     const { query, headers, authentication, body } = expandReferences(params)(state);
 
-    const auth = authentication || {
-      'username': username,
-      'password': password,
-      'sendImmediately': (authType != 'digest')
-    }
+    const auth = setAuth(state.configuration, authentication);
 
     return req("DELETE", {url, query, body, auth, headers})
     .then((response) => {
