@@ -15,7 +15,7 @@ export function req( method, { url, headers, body, auth, query } ) {
       if(error) {
         reject(error);
       } else {
-        console.log("\x1b[32m%s\x1b[0m", `✓ ${method} succeeded.`);
+        console.log(`✓ ${method} succeeded.`);
         resolve(
           tryJson(body)
         );
