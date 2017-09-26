@@ -1,12 +1,11 @@
 export function setUrl(configuration, path) {
-  if ( !configuration ) return path
-  else if ( configuration.baseUrl ) return configuration.baseUrl + path
+  if ( configuration && configuration.baseUrl ) return configuration.baseUrl + path
   else return path
 }
 
 export function setAuth(configuration, manualAuth) {
   if ( manualAuth ) return manualAuth
-  else if ( configuration.username ) return {
+  else if ( configuration && configuration.username ) return {
     'username': configuration.username,
     'password': configuration.password,
     'sendImmediately': ( configuration.authType != 'digest' )
