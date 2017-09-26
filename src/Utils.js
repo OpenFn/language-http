@@ -1,3 +1,8 @@
+export function setUrl(configuration, path) {
+  if ( configuration.baseUrl ) return configuration.baseUrl + path
+  else return path
+}
+
 export function setAuth(configuration, manualAuth) {
   if ( manualAuth ) return manualAuth
   else if ( configuration.username ) return {

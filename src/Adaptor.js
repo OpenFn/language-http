@@ -1,6 +1,6 @@
 /** @module Adaptor */
 import { req } from './Client';
-import { setAuth } from './Utils';
+import { setAuth, setUrl } from './Utils';
 import {
   execute as commonExecute,
   expandReferences,
@@ -54,8 +54,7 @@ export function execute(...operations) {
 
    return state => {
 
-     const { baseUrl } = state.configuration;
-     const url = ( baseUrl ? baseUrl + path : path );
+     const url = setUrl(state.configuration, path);
 
      const { query, headers, authentication } = expandReferences(params)(state);
 
@@ -95,8 +94,7 @@ export function execute(...operations) {
 
    return state => {
 
-     const { baseUrl, username, password, authType } = state.configuration;
-     const url = ( baseUrl ? baseUrl + path : path );
+     const url = setUrl(state.configuration, path);
 
      const { query, headers, authentication, body } = expandReferences(params)(state);
 
@@ -136,8 +134,7 @@ export function put(path, params, callback) {
 
   return state => {
 
-    const { baseUrl, username, password, authType } = state.configuration;
-    const url = ( baseUrl ? baseUrl + path : path );
+    const url = setUrl(state.configuration, path);
 
     const { query, headers, authentication, body } = expandReferences(params)(state);
 
@@ -176,8 +173,7 @@ export function patch(path, params, callback) {
 
   return state => {
 
-    const { baseUrl, username, password, authType } = state.configuration;
-    const url = ( baseUrl ? baseUrl + path : path );
+    const url = setUrl(state.configuration, path);
 
     const { query, headers, authentication, body } = expandReferences(params)(state);
 
@@ -215,8 +211,7 @@ export function del(path, params, callback) {
 
   return state => {
 
-    const { baseUrl, username, password, authType } = state.configuration;
-    const url = ( baseUrl ? baseUrl + path : path );
+    const url = setUrl(state.configuration, path);
 
     const { query, headers, authentication, body } = expandReferences(params)(state);
 
