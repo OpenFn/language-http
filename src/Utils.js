@@ -1,5 +1,6 @@
 export function setUrl(configuration, path) {
-  if ( configuration.baseUrl ) return configuration.baseUrl + path
+  if ( !configuration ) return path
+  else if ( configuration.baseUrl ) return configuration.baseUrl + path
   else return path
 }
 
