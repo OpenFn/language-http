@@ -56,11 +56,11 @@ export function execute(...operations) {
 
      const url = setUrl(state.configuration, path);
 
-     const { query, headers, authentication } = expandReferences(params)(state);
+     const { query, headers, authentication, ...rest } = expandReferences(params)(state);
 
      const auth = setAuth(state.configuration, authentication);
 
-     return req("GET", {url, query, auth, headers})
+     return req("GET", {url, query, auth, headers, rest})
      .then((response) => {
        const nextState = composeNextState(state, response)
        if (callback) return callback(nextState);
@@ -96,11 +96,11 @@ export function execute(...operations) {
 
      const url = setUrl(state.configuration, path);
 
-     const { query, headers, authentication, body } = expandReferences(params)(state);
+     const { query, headers, authentication, body, ...rest } = expandReferences(params)(state);
 
      const auth = setAuth(state.configuration, authentication);
 
-     return req("POST", {url, query, body, auth, headers})
+     return req("POST", {url, query, body, auth, headers, rest})
      .then((response) => {
        const nextState = composeNextState(state, response)
        if (callback) return callback(nextState);
@@ -136,11 +136,11 @@ export function put(path, params, callback) {
 
     const url = setUrl(state.configuration, path);
 
-    const { query, headers, authentication, body } = expandReferences(params)(state);
+    const { query, headers, authentication, body, ...rest } = expandReferences(params)(state);
 
     const auth = setAuth(state.configuration, authentication);
 
-    return req("PUT", {url, query, body, auth, headers})
+    return req("PUT", {url, query, body, auth, headers, rest})
     .then((response) => {
       const nextState = composeNextState(state, response)
       if (callback) return callback(nextState);
@@ -175,11 +175,11 @@ export function patch(path, params, callback) {
 
     const url = setUrl(state.configuration, path);
 
-    const { query, headers, authentication, body } = expandReferences(params)(state);
+    const { query, headers, authentication, body, ...rest } = expandReferences(params)(state);
 
     const auth = setAuth(state.configuration, authentication);
 
-    return req("PATCH", {url, query, body, auth, headers})
+    return req("PATCH", {url, query, body, auth, headers, rest})
     .then((response) => {
       const nextState = composeNextState(state, response)
       if (callback) return callback(nextState);
@@ -213,11 +213,11 @@ export function del(path, params, callback) {
 
     const url = setUrl(state.configuration, path);
 
-    const { query, headers, authentication, body } = expandReferences(params)(state);
+    const { query, headers, authentication, body, ...rest } = expandReferences(params)(state);
 
     const auth = setAuth(state.configuration, authentication);
 
-    return req("DELETE", {url, query, body, auth, headers})
+    return req("DELETE", {url, query, body, auth, headers, rest})
     .then((response) => {
       const nextState = composeNextState(state, response)
       if (callback) return callback(nextState);
