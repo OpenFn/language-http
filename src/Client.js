@@ -22,9 +22,9 @@ export function req( method, params ) {
         console.log(`✓ ${method} succeeded.`);
         const resp = tryJson(body);
         if(rest.keepCookie) {
-          const cookie = j.getCookieString(url);
+          const __cookie = j.getCookieString(url);
           resolve({
-            cookie,
+            __cookie,
             ...resp
           });
         } else {
