@@ -6,6 +6,8 @@ import {
   expandReferences,
   composeNextState
 } from 'language-common';
+import cheerio from 'cheerio';
+import cheerioTableparser from 'cheerio-tableparser';
 
 /**
  * Execute a sequence of operations.
@@ -223,6 +225,40 @@ export function del(path, params, callback) {
       if (callback) return callback(nextState);
       return nextState;
     })
+  }
+}
+
+
+/**
+ * Cheerio parser for XML and HTML
+ * @public
+ * @example
+ *  parse(body, function($){
+ *    return $("table[class=your_table]").parsetable(true, true, true);
+ *  })
+ * @function
+ * @param {String} body - data string to be parsed
+ * @param {function} script - script for extracting data
+ * @returns {Operation}
+ */
+export function parse(body, script) {
+
+  return state => {
+
+    const $ = cheerio.load(body);
+    cheerioTableparser($);
+
+    if(script) {
+      const result = script($)
+      try {
+        const r = JSON.parse(result);
+        return composeNextState(state, r)
+      } catch(e) {
+        return composeNextState(state, {body: result})
+      }
+    } else {
+      return composeNextState(state, {body: body})
+    }
   }
 }
 
