@@ -20,6 +20,7 @@ export function req( method, params ) {
         reject(error);
       } else {
         console.log(`✓ ${method} succeeded.`);
+        console.log(`Server responded with: \n${response}`);
         const resp = tryJson(body);
         if(rest.keepCookie) {
           const __cookie = j.getCookieString(url);
