@@ -1,6 +1,20 @@
 import request from 'request'
 import { assembleError, tryJson } from './Utils';
 
+export function rawRequest(params) {
+  return new Promise((resolve, reject) => {
+    request(params, (error, response, body) => {
+      error = assembleError({error, response})
+      error && reject(error);
+
+      console.log(`✓ Request succeeded.`);
+      console.log(`Server responded with: \n${JSON.stringify(response, null, 2)}`);
+      const resp = tryJson(body);
+      resolve(resp);
+    })
+  })
+}
+
 export function req( method, params ) {
   const { url, headers, body, auth, query, rest } = params;
   return new Promise((resolve, reject) => {

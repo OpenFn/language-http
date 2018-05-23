@@ -1,5 +1,5 @@
 /** @module Adaptor */
-import { req } from './Client';
+import { req, rawRequest } from './Client';
 import { setAuth, setUrl } from './Utils';
 import {
   execute as commonExecute,
@@ -259,6 +259,28 @@ export function parse(body, script) {
     } else {
       return composeNextState(state, {body: body})
     }
+  }
+}
+
+/**
+ * Make a request using the 'request' node module.
+ * @public
+ * @example
+ *  request(params);
+ * @function
+ * @param {object} params - Query, Headers and Authentication parameters
+ * @returns {Operation}
+ */
+export function request(params) {
+  return state => {
+
+    const expanded = (
+      typeof params === 'string' ?
+      params :
+      expandReferences(params)(state)
+    );
+
+    return rawRequest(expanded)
   }
 }
 
