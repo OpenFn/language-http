@@ -4,7 +4,7 @@ import { setAuth, setUrl } from './Utils';
 import {
   execute as commonExecute,
   expandReferences,
-  composeNextState
+  composeNextState,
 } from 'language-common';
 import cheerio from 'cheerio';
 import cheerioTableparser from 'cheerio-tableparser';
@@ -24,13 +24,12 @@ import cheerioTableparser from 'cheerio-tableparser';
 export function execute(...operations) {
   const initialState = {
     references: [],
-    data: null
-  }
-
-  return state => {
-    return commonExecute(...operations)({ ...initialState, ...state })
+    data: null,
   };
 
+  return state => {
+    return commonExecute(...operations)({ ...initialState, ...state });
+  };
 }
 
 /**
@@ -52,26 +51,23 @@ export function execute(...operations) {
  * @param {function} callback - (Optional) Callback function
  * @returns {Operation}
  */
- export function get(path, params, callback) {
+export function get(path, params, callback) {
+  return state => {
+    const url = setUrl(state.configuration, path);
 
-   return state => {
+    const { query, headers, authentication, ...rest } = expandReferences(
+      params
+    )(state);
 
-     const url = setUrl(state.configuration, path);
+    const auth = setAuth(state.configuration, authentication);
 
-     const { query, headers, authentication, ...rest } = expandReferences(params)(state);
-
-     const auth = setAuth(state.configuration, authentication);
-
-     return req("GET", {url, query, auth, headers, rest})
-     .then((response) => {
-       const nextState = composeNextState(state, response)
-       if (callback) return callback(nextState);
-       return nextState;
-     })
-
-   }
- }
-
+    return req('GET', { url, query, auth, headers, rest }).then(response => {
+      const nextState = composeNextState(state, response);
+      if (callback) return callback(nextState);
+      return nextState;
+    });
+  };
+}
 
 /**
  * Make a POST request
@@ -92,26 +88,36 @@ export function execute(...operations) {
  * @param {function} callback - (Optional) Callback function
  * @returns {Operation}
  */
- export function post(path, params, callback) {
+export function post(path, params, callback) {
+  return state => {
+    const url = setUrl(state.configuration, path);
 
-   return state => {
+    const {
+      query,
+      headers,
+      authentication,
+      body,
+      formData,
+      ...rest
+    } = expandReferences(params)(state);
 
-     const url = setUrl(state.configuration, path);
+    const auth = setAuth(state.configuration, authentication);
 
-     const { query, headers, authentication, body, ...rest } = expandReferences(params)(state);
-
-     const auth = setAuth(state.configuration, authentication);
-
-     return req("POST", {url, query, body, auth, headers, rest})
-     .then((response) => {
-       const nextState = composeNextState(state, response)
-       if (callback) return callback(nextState);
-       return nextState;
-     })
-
-   }
- }
-
+    return req('POST', {
+      url,
+      query,
+      body,
+      auth,
+      headers,
+      formData,
+      rest,
+    }).then(response => {
+      const nextState = composeNextState(state, response);
+      if (callback) return callback(nextState);
+      return nextState;
+    });
+  };
+}
 
 /**
  * Make a PUT request
@@ -133,24 +139,29 @@ export function execute(...operations) {
  * @returns {Operation}
  */
 export function put(path, params, callback) {
-
   return state => {
-
     const url = setUrl(state.configuration, path);
 
-    const { query, headers, authentication, body, ...rest } = expandReferences(params)(state);
+    const {
+      query,
+      headers,
+      authentication,
+      body,
+      formData,
+      ...rest
+    } = expandReferences(params)(state);
 
     const auth = setAuth(state.configuration, authentication);
 
-    return req("PUT", {url, query, body, auth, headers, rest})
-    .then((response) => {
-      const nextState = composeNextState(state, response)
-      if (callback) return callback(nextState);
-      return nextState;
-    })
-  }
+    return req('PUT', { url, query, body, formData, auth, headers, rest }).then(
+      response => {
+        const nextState = composeNextState(state, response);
+        if (callback) return callback(nextState);
+        return nextState;
+      }
+    );
+  };
 }
-
 
 /**
  * Make a PATCH request
@@ -172,22 +183,34 @@ export function put(path, params, callback) {
  * @returns {Operation}
  */
 export function patch(path, params, callback) {
-
   return state => {
-
     const url = setUrl(state.configuration, path);
 
-    const { query, headers, authentication, body, ...rest } = expandReferences(params)(state);
+    const {
+      query,
+      headers,
+      authentication,
+      body,
+      formData,
+      ...rest
+    } = expandReferences(params)(state);
 
     const auth = setAuth(state.configuration, authentication);
 
-    return req("PATCH", {url, query, body, auth, headers, rest})
-    .then((response) => {
-      const nextState = composeNextState(state, response)
+    return req('PATCH', {
+      url,
+      query,
+      body,
+      formData,
+      auth,
+      headers,
+      rest,
+    }).then(response => {
+      const nextState = composeNextState(state, response);
       if (callback) return callback(nextState);
       return nextState;
-    })
-  }
+    });
+  };
 }
 
 /**
@@ -210,24 +233,35 @@ export function patch(path, params, callback) {
  * @returns {Operation}
  */
 export function del(path, params, callback) {
-
   return state => {
-
     const url = setUrl(state.configuration, path);
 
-    const { query, headers, authentication, body, ...rest } = expandReferences(params)(state);
+    const {
+      query,
+      headers,
+      authentication,
+      body,
+      formData,
+      ...rest
+    } = expandReferences(params)(state);
 
     const auth = setAuth(state.configuration, authentication);
 
-    return req("DELETE", {url, query, body, auth, headers, rest})
-    .then((response) => {
-      const nextState = composeNextState(state, response)
+    return req('DELETE', {
+      url,
+      query,
+      body,
+      formData,
+      auth,
+      headers,
+      rest,
+    }).then(response => {
+      const nextState = composeNextState(state, response);
       if (callback) return callback(nextState);
       return nextState;
-    })
-  }
+    });
+  };
 }
-
 
 /**
  * Cheerio parser for XML and HTML
@@ -242,24 +276,22 @@ export function del(path, params, callback) {
  * @returns {Operation}
  */
 export function parse(body, script) {
-
   return state => {
-
     const $ = cheerio.load(body);
     cheerioTableparser($);
 
-    if(script) {
-      const result = script($)
+    if (script) {
+      const result = script($);
       try {
         const r = JSON.parse(result);
-        return composeNextState(state, r)
-      } catch(e) {
-        return composeNextState(state, {body: result})
+        return composeNextState(state, r);
+      } catch (e) {
+        return composeNextState(state, { body: result });
       }
     } else {
-      return composeNextState(state, {body: body})
+      return composeNextState(state, { body: body });
     }
-  }
+  };
 }
 
 /**
@@ -273,15 +305,11 @@ export function parse(body, script) {
  */
 export function request(params) {
   return state => {
+    const expanded =
+      typeof params === 'string' ? params : expandReferences(params)(state);
 
-    const expanded = (
-      typeof params === 'string' ?
-      params :
-      expandReferences(params)(state)
-    );
-
-    return rawRequest(expanded)
-  }
+    return rawRequest(expanded);
+  };
 }
 
 export {
