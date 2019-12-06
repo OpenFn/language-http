@@ -18,7 +18,7 @@ export function rawRequest(params) {
 }
 
 export function req(method, params) {
-  const { url, headers, body, auth, query, rest } = params;
+  const { url, headers, body, formData, auth, query, rest } = params;
   return new Promise((resolve, reject) => {
     const j = request.jar();
     request(
@@ -29,7 +29,7 @@ export function req(method, params) {
         qs: query,
         method: method,
         json: body,
-        formData: formData,
+        formData,
         jar: j,
         ...rest,
       },
