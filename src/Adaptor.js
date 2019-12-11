@@ -98,6 +98,7 @@ export function post(path, params, callback) {
       authentication,
       body,
       formData,
+      options,
       ...rest
     } = expandReferences(params)(state);
 
@@ -110,6 +111,7 @@ export function post(path, params, callback) {
       auth,
       headers,
       formData,
+      options,
       rest,
     }).then(response => {
       const nextState = composeNextState(state, response);
@@ -148,18 +150,26 @@ export function put(path, params, callback) {
       authentication,
       body,
       formData,
+      options,
       ...rest
     } = expandReferences(params)(state);
 
     const auth = setAuth(state.configuration, authentication);
 
-    return req('PUT', { url, query, body, formData, auth, headers, rest }).then(
-      response => {
-        const nextState = composeNextState(state, response);
-        if (callback) return callback(nextState);
-        return nextState;
-      }
-    );
+    return req('PUT', {
+      url,
+      query,
+      body,
+      formData,
+      auth,
+      headers,
+      options,
+      rest,
+    }).then(response => {
+      const nextState = composeNextState(state, response);
+      if (callback) return callback(nextState);
+      return nextState;
+    });
   };
 }
 
@@ -192,6 +202,7 @@ export function patch(path, params, callback) {
       authentication,
       body,
       formData,
+      options,
       ...rest
     } = expandReferences(params)(state);
 
@@ -202,6 +213,7 @@ export function patch(path, params, callback) {
       query,
       body,
       formData,
+      options,
       auth,
       headers,
       rest,
@@ -242,6 +254,7 @@ export function del(path, params, callback) {
       authentication,
       body,
       formData,
+      options,
       ...rest
     } = expandReferences(params)(state);
 
@@ -252,6 +265,7 @@ export function del(path, params, callback) {
       query,
       body,
       formData,
+      options,
       auth,
       headers,
       rest,
