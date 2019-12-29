@@ -8,6 +8,8 @@ import {
 } from 'language-common';
 import cheerio from 'cheerio';
 import cheerioTableparser from 'cheerio-tableparser';
+import fs from 'fs';
+import parse from 'csv-parse';
 
 /**
  * Execute a sequence of operations.
@@ -281,7 +283,7 @@ export function del(path, params, callback) {
  * Cheerio parser for XML and HTML
  * @public
  * @example
- *  parse(body, function($){
+ *  parseXML(body, function($){
  *    return $("table[class=your_table]").parsetable(true, true, true);
  *  })
  * @function
@@ -289,7 +291,7 @@ export function del(path, params, callback) {
  * @param {function} script - script for extracting data
  * @returns {Operation}
  */
-export function parse(body, script) {
+export function parseXML(body, script) {
   return state => {
     const $ = cheerio.load(body);
     cheerioTableparser($);
@@ -305,6 +307,51 @@ export function parse(body, script) {
     } else {
       return composeNextState(state, { body: body });
     }
+  };
+}
+
+/**
+ * CSV-Parse for CSV conversion to JSON
+ * @public
+ * @example
+ *  parseCSV(state.data.someCSV, {
+ * 	  quoteChar: '"',
+ * 	  header: false,
+ * 	});
+ * @function
+ * @param {String} target - string or local file with CSV data
+ * @param {Object} config - PapaParse config object
+ * @returns {Operation}
+ */
+export function parseCSV(target, config) {
+  return state => {
+    return new Promise((resolve, reject) => {
+      var csvData = [];
+
+      try {
+        fs.readFileSync(target);
+        fs.createReadStream(target)
+          .pipe(parse(config))
+          .on('data', csvrow => {
+            csvData.push(csvrow);
+          })
+          .on('end', () => {
+            console.log(csvData);
+            resolve(composeNextState(state, csvData));
+          });
+      } catch (err) {
+        var csvString;
+        if (typeof target === 'string') {
+          csvString = target;
+        } else {
+          csvString = expandReferences(target)(state);
+        }
+        csvData = parse(csvString, config, (err, output) => {
+          console.log(output);
+          resolve(composeNextState(state, output));
+        });
+      }
+    });
   };
 }
 
