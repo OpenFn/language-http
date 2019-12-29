@@ -337,7 +337,7 @@ export function parseCSV(target, config) {
           })
           .on('end', () => {
             console.log(csvData);
-            resolve(composeNextState(state, csvData));
+            resolve(composeNextState(state, { records: csvData }));
           });
       } catch (err) {
         var csvString;
@@ -348,7 +348,7 @@ export function parseCSV(target, config) {
         }
         csvData = parse(csvString, config, (err, output) => {
           console.log(output);
-          resolve(composeNextState(state, output));
+          resolve(composeNextState(state, { records: output }));
         });
       }
     });
