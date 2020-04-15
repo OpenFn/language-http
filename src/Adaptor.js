@@ -29,7 +29,7 @@ export function execute(...operations) {
     data: null,
   };
 
-  return state => {
+  return (state) => {
     return commonExecute(...operations)({ ...initialState, ...state });
   };
 }
@@ -54,16 +54,22 @@ export function execute(...operations) {
  * @returns {Operation}
  */
 export function get(path, params, callback) {
-  return state => {
+  return (state) => {
     const url = setUrl(state.configuration, path);
 
-    const { query, headers, authentication, ...rest } = expandReferences(
-      params
-    )(state);
+    const {
+      query,
+      headers,
+      authentication,
+      body,
+      formData,
+      options,
+      ...rest
+    } = expandReferences(params)(state);
 
     const auth = setAuth(state.configuration, authentication);
 
-    return req('GET', { url, query, auth, headers, rest }).then(response => {
+    return req('GET', { url, query, auth, headers, rest }).then((response) => {
       const nextState = composeNextState(state, response);
       if (callback) return callback(nextState);
       return nextState;
@@ -91,7 +97,7 @@ export function get(path, params, callback) {
  * @returns {Operation}
  */
 export function post(path, params, callback) {
-  return state => {
+  return (state) => {
     const url = setUrl(state.configuration, path);
 
     const {
@@ -115,7 +121,7 @@ export function post(path, params, callback) {
       formData,
       options,
       rest,
-    }).then(response => {
+    }).then((response) => {
       const nextState = composeNextState(state, response);
       if (callback) return callback(nextState);
       return nextState;
@@ -143,7 +149,7 @@ export function post(path, params, callback) {
  * @returns {Operation}
  */
 export function put(path, params, callback) {
-  return state => {
+  return (state) => {
     const url = setUrl(state.configuration, path);
 
     const {
@@ -167,7 +173,7 @@ export function put(path, params, callback) {
       headers,
       options,
       rest,
-    }).then(response => {
+    }).then((response) => {
       const nextState = composeNextState(state, response);
       if (callback) return callback(nextState);
       return nextState;
@@ -195,7 +201,7 @@ export function put(path, params, callback) {
  * @returns {Operation}
  */
 export function patch(path, params, callback) {
-  return state => {
+  return (state) => {
     const url = setUrl(state.configuration, path);
 
     const {
@@ -219,7 +225,7 @@ export function patch(path, params, callback) {
       auth,
       headers,
       rest,
-    }).then(response => {
+    }).then((response) => {
       const nextState = composeNextState(state, response);
       if (callback) return callback(nextState);
       return nextState;
@@ -247,7 +253,7 @@ export function patch(path, params, callback) {
  * @returns {Operation}
  */
 export function del(path, params, callback) {
-  return state => {
+  return (state) => {
     const url = setUrl(state.configuration, path);
 
     const {
@@ -271,7 +277,7 @@ export function del(path, params, callback) {
       auth,
       headers,
       rest,
-    }).then(response => {
+    }).then((response) => {
       const nextState = composeNextState(state, response);
       if (callback) return callback(nextState);
       return nextState;
@@ -292,7 +298,7 @@ export function del(path, params, callback) {
  * @returns {Operation}
  */
 export function parseXML(body, script) {
-  return state => {
+  return (state) => {
     const $ = cheerio.load(body);
     cheerioTableparser($);
 
@@ -324,7 +330,7 @@ export function parseXML(body, script) {
  * @returns {Operation}
  */
 export function parseCSV(target, config) {
-  return state => {
+  return (state) => {
     return new Promise((resolve, reject) => {
       var csvData = [];
 
@@ -332,7 +338,7 @@ export function parseCSV(target, config) {
         fs.readFileSync(target);
         fs.createReadStream(target)
           .pipe(parse(config))
-          .on('data', csvrow => {
+          .on('data', (csvrow) => {
             csvData.push(csvrow);
           })
           .on('end', () => {
@@ -365,7 +371,7 @@ export function parseCSV(target, config) {
  * @returns {Operation}
  */
 export function request(params) {
-  return state => {
+  return (state) => {
     const expanded =
       typeof params === 'string' ? params : expandReferences(params)(state);
 

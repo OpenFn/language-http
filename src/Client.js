@@ -49,6 +49,7 @@ export function req(method, params) {
             const __cookie = j.getCookieString(url);
             resolve({
               __cookie,
+              __headers: response.headers,
               ...resp,
             });
           } else {
