@@ -35,7 +35,6 @@ export function req(method, params) {
         ...rest,
       },
       function(error, response, body) {
-        console.log(params);
         error = assembleError({ error, response, params });
         if (error) {
           reject(error);
