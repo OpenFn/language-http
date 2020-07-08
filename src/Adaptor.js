@@ -81,7 +81,7 @@ export function get(path, params, callback) {
  * @example
  *  post("/myendpoint", {
  *      body: {"foo": "bar"},
- *      headers: {"content-type": "json"},
+ *      headers: {"content-type": "application/json"},
  *      authentication: {username: "user", password: "pass"},
  *    },
  *    function(state) {
@@ -133,7 +133,7 @@ export function post(path, params, callback) {
  * @example
  *  put("/myendpoint", {
  *      body: {"foo": "bar"},
- *      headers: {"content-type": "json"},
+ *      headers: {"content-type": "application/json"},
  *      authentication: {username: "user", password: "pass"},
  *    },
  *    function(state) {
@@ -185,7 +185,7 @@ export function put(path, params, callback) {
  * @example
  *  patch("/myendpoint", {
  *      body: {"foo": "bar"},
- *      headers: {"content-type": "json"},
+ *      headers: {"content-type": "application/json"},
  *      authentication: {username: "user", password: "pass"},
  *    },
  *    function(state) {
@@ -237,7 +237,7 @@ export function patch(path, params, callback) {
  * @example
  *  del("/myendpoint", {
  *      body: {"foo": "bar"},
- *      headers: {"content-type": "json"},
+ *      headers: {"content-type": "application/json"},
  *      authentication: {username: "user", password: "pass"},
  *    },
  *    function(state) {
