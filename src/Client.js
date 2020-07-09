@@ -7,10 +7,9 @@ export function rawRequest(params) {
       error = assembleError({ error, response, params });
       error && reject(error);
 
-      console.log(`✓ Request succeeded.`);
-      // console.log(
-      //   `Server responded with: \n${JSON.stringify(response, null, 2)}`
-      // );
+      console.log(
+        `✓ Request succeeded. (The response body will be available in state.)`
+      );
       const resp = tryJson(body);
       resolve(resp);
     });
@@ -39,10 +38,9 @@ export function req(method, params) {
         if (error) {
           reject(error);
         } else {
-          console.log(`✓ ${method} succeeded.`);
-          // console.log(
-          //   `Server responded with: \n${JSON.stringify(response, null, 2)}`
-          // );
+          console.log(
+            `✓ ${method} succeeded. (The response body will be available in state.)`
+          );
           const resp = tryJson(body);
           if (rest.keepCookie) {
             const __cookie = j.getCookieString(url);
