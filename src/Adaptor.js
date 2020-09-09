@@ -69,11 +69,13 @@ export function get(path, params, callback) {
 
     const auth = setAuth(state.configuration, authentication);
 
-    return req('GET', { url, query, auth, headers, rest }).then(response => {
-      const nextState = composeNextState(state, response);
-      if (callback) return callback(nextState);
-      return nextState;
-    });
+    return req('GET', { url, query, auth, headers, options, rest }).then(
+      response => {
+        const nextState = composeNextState(state, response);
+        if (callback) return callback(nextState);
+        return nextState;
+      }
+    );
   };
 }
 
