@@ -69,7 +69,7 @@ export function get(path, params, callback) {
 
     const auth = setAuth(state.configuration, authentication);
 
-    return req('GET', { url, query, auth, headers, rest }).then(response => {
+    return req('GET', { url, query, auth, headers, rest, options }).then(response => {
       const nextState = composeNextState(state, response);
       if (callback) return callback(nextState);
       return nextState;
@@ -105,6 +105,7 @@ export function post(path, params, callback) {
       headers,
       authentication,
       body,
+      form,
       formData,
       options,
       ...rest
@@ -116,6 +117,7 @@ export function post(path, params, callback) {
       url,
       query,
       body,
+      form,
       auth,
       headers,
       formData,
@@ -157,6 +159,7 @@ export function put(path, params, callback) {
       headers,
       authentication,
       body,
+      form,
       formData,
       options,
       ...rest
@@ -168,6 +171,7 @@ export function put(path, params, callback) {
       url,
       query,
       body,
+      form,
       formData,
       auth,
       headers,
@@ -209,6 +213,7 @@ export function patch(path, params, callback) {
       headers,
       authentication,
       body,
+      form,
       formData,
       options,
       ...rest
@@ -220,6 +225,7 @@ export function patch(path, params, callback) {
       url,
       query,
       body,
+      form,
       formData,
       options,
       auth,
