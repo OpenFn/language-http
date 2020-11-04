@@ -69,7 +69,7 @@ export function get(path, params, callback) {
 
     const auth = setAuth(state.configuration, authentication);
 
-    return req('GET', { url, query, auth, headers, options, rest }).then(
+    return req('GET', { url, query, auth, headers, options, ...rest }).then(
       response => {
         const nextState = composeNextState(state, response);
         if (callback) return callback(nextState);
@@ -122,7 +122,7 @@ export function post(path, params, callback) {
       headers,
       formData,
       options,
-      rest,
+      ...rest,
     }).then(response => {
       const nextState = composeNextState(state, response);
       if (callback) return callback(nextState);
@@ -174,7 +174,7 @@ export function put(path, params, callback) {
       auth,
       headers,
       options,
-      rest,
+      ...rest,
     }).then(response => {
       const nextState = composeNextState(state, response);
       if (callback) return callback(nextState);
@@ -226,7 +226,7 @@ export function patch(path, params, callback) {
       options,
       auth,
       headers,
-      rest,
+      ...rest,
     }).then(response => {
       const nextState = composeNextState(state, response);
       if (callback) return callback(nextState);
@@ -278,7 +278,7 @@ export function del(path, params, callback) {
       options,
       auth,
       headers,
-      rest,
+      ...rest,
     }).then(response => {
       const nextState = composeNextState(state, response);
       if (callback) return callback(nextState);
