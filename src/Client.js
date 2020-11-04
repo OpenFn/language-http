@@ -22,10 +22,10 @@ export function req(method, params) {
     const j = request.jar();
     request(
       {
-        qs: query,
-        method: method,
-        json: body,
         jar: j,
+        json: body,
+        method: method,
+        qs: query,
         ...rest,
       },
       function (error, response, body) {
@@ -38,7 +38,7 @@ export function req(method, params) {
           );
           const resp = tryJson(body);
           if (rest.keepCookie) {
-            const __cookie = j.getCookieString(url);
+            const __cookie = j.getCookieString(params.url);
             resolve({
               __cookie,
               __headers: response.headers,
