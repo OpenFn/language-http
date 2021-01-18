@@ -223,16 +223,13 @@ describe('get', () => {
         return url;
       });
 
-    testServer
-      .get('/api/fake-cookies')
-      .matchHeader('keepCookie', true)
-      .reply(
-        200,
-        function (url, body) {
-          return url;
-        },
-        { 'Set-Cookie': 'tasty_cookie=choco' }
-      );
+    testServer.get('/api/fake-cookies').reply(
+      200,
+      function (url, body) {
+        return url;
+      },
+      { 'Set-Cookie': 'tasty_cookie=choco' }
+    );
 
     testServer.get('/api/fake-callback').reply(200, function (url, body) {
       return { url, id: 3 };
@@ -347,7 +344,7 @@ describe('get', () => {
     expect(finalState.data.body).to.eql('/api/fake-endpoint-3');
   });
 
-  it('can keep and reuse cookies', async () => {
+  it.only('can keep and reuse cookies', async () => {
     const state = {
       configuration: {},
       data: {},
@@ -355,7 +352,7 @@ describe('get', () => {
 
     const finalState = await execute(
       get('https://www.example.com/api/fake-cookies', {
-        headers: { keepCookie: true },
+        keepCookie: true,
       })
     )(state);
     expect(finalState.data.__cookie).to.eql('tasty_cookie=choco');
