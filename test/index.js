@@ -344,7 +344,7 @@ describe('get', () => {
     expect(finalState.data.body).to.eql('/api/fake-endpoint-3');
   });
 
-  it.only('can keep and reuse cookies', async () => {
+  it('can keep and reuse cookies', async () => {
     const state = {
       configuration: {},
       data: {},
@@ -391,9 +391,19 @@ describe('post', () => {
       return body;
     });
 
+    testServer.post('/api/fake-form').reply(200, function (url, body) {
+      return body;
+    });
+
     testServer.post('/api/fake-formData').reply(200, function (url, body) {
       return body;
     });
+
+    testServer
+      .post('/api/fake-custom-success-codes')
+      .reply(302, function (url, body) {
+        return { body, statusCode: 302 };
+      });
   });
 
   it('can set JSON on the request body', async () => {
@@ -408,10 +418,30 @@ describe('post', () => {
     expect(finalState.data.body).to.eql({ name: 'test', age: 24 });
   });
 
-  it('can set FormData on the request body', async () => {
-    let formData = {
+  it('can set data via Form param on the request body', async () => {
+    let form = {
       username: 'fake',
       password: 'fake_pass',
+    };
+    const state = {
+      configuration: {},
+      data: form,
+    };
+
+    const finalState = await execute(
+      post('https://www.example.com/api/fake-form', {
+        form: state.data,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      })
+    )(state);
+    expect(finalState.data.body).to.eql('username=fake&password=fake_pass');
+  });
+
+  it('can set FormData on the request body', async () => {
+    let formData = {
+      id: 'fake_id',
+      parent: 'fake_parent',
+      mobile_phone: 'fake_phone',
     };
     const state = {
       configuration: {},
@@ -420,10 +450,33 @@ describe('post', () => {
 
     const finalState = await execute(
       post('https://www.example.com/api/fake-formData', {
-        form: state.data,
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        formData: state => {
+          return state.data;
+        },
       })
     )(state);
-    expect(finalState.data.body).to.eql('username=fake&password=fake_pass');
+    expect(finalState.data.body).to.contain('Content-Disposition: form-data');
+  });
+
+  it('can set successCodes on the request', async () => {
+    let formData = {
+      id: 'fake_id',
+      parent: 'fake_parent',
+      mobile_phone: 'fake_phone',
+    };
+    const state = {
+      configuration: {},
+      data: formData,
+    };
+
+    const finalState = await execute(
+      post('https://www.example.com/api/fake-custom-success-codes', {
+        formData: state => {
+          return state.data;
+        },
+        options: { successCodes: [302] },
+      })
+    )(state);
+    expect(finalState.data.statusCode).to.eq(302);
   });
 });
