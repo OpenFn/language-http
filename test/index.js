@@ -245,7 +245,7 @@ describe('get', () => {
     nock.cleanAll();
   });
 
-  it('accepts headers', async () => {
+  it.only('accepts headers', async () => {
     const state = {
       configuration: {
         username: 'hello',
@@ -260,6 +260,7 @@ describe('get', () => {
       })
     )(state);
 
+    console.log('finalState', finalState.data);
     expect(finalState.data).to.eql([
       '/api/fake',
       {
@@ -546,7 +547,7 @@ describe('delete', () => {
       })
     )(state);
 
-    // TODO: fix this interface, if `Utils.tryJson` cleanly converts the 
+    // TODO: fix this interface, if `Utils.tryJson` cleanly converts the
     // response body, it won't be under the `body` key. See `put()` example
     // above where we have to look inside `data.body.body`.
     expect(finalState.data).to.eql({});

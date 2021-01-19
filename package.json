@@ -18,7 +18,7 @@
     "cheerio-tableparser": "^1.0.1",
     "csv-parse": "^4.10.1",
     "import": "0.0.6",
-    "language-common": "github:openfn/language-common#v0.3.0",
+    "language-common": "github:openfn/language-common#v1.0.0",
     "request": "^2.72.0"
   },
   "devDependencies": {

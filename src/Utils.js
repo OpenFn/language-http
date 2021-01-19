@@ -34,3 +34,41 @@ export function tryJson(data) {
     return { body: data };
   }
 }
+
+export function mapToAxiosConfig(requestConfig) {
+  return {
+    ...requestConfig,
+    url: requestConfig?.url ?? requestConfig?.uri,
+    // method,
+    // baseURL,
+    // transformRequest,
+    // transformResponse,
+    // headers,
+    params: requestConfig?.params ?? requestConfig?.qs,
+    // paramsSerializer,
+    data:
+      requestConfig?.data ??
+      (requestConfig?.body || requestConfig?.form || requestConfig?.formData),
+    // timeouts,
+    // withCredentials,
+    // adapter,
+    auth: requestConfig?.auth ?? requestConfig?.authentication,
+    responseType: requestConfig?.responseType ?? requestConfig?.json,
+    responseEncoding:
+      requestConfig?.responseEncoding ?? requestConfig?.encoding,
+    // xsrfCookieName,
+    // xsrfHeaderName,
+    // onUploadProgress,
+    // onDownloadProgress,
+    // maxContentLength,
+    // maxBodyLength,
+    // validateStatus,
+    // maxRedirects,
+    // socketPath,
+    httpAgent: requestConfig?.httpAgent ?? requestConfig?.agent,
+    // httpsAgent,
+    // proxy,
+    // cancelToken,
+    // decompress,
+  };
+}

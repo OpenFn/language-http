@@ -1,10 +1,11 @@
 /** @module Adaptor */
 import { req, rawRequest } from './Client';
-import { setAuth, setUrl } from './Utils';
+import { setAuth, setUrl, mapToAxiosConfig } from './Utils';
 import {
   execute as commonExecute,
   expandReferences,
   composeNextState,
+  http,
 } from 'language-common';
 import cheerio from 'cheerio';
 import cheerioTableparser from 'cheerio-tableparser';
@@ -55,27 +56,36 @@ export function execute(...operations) {
  */
 export function get(path, params, callback) {
   return state => {
+    path = expandReferences(path)(state);
+
+    // params = expandReferences(params)(state);
+    console.log('params', params);
     const url = setUrl(state.configuration, path);
 
-    const {
-      query,
-      headers,
-      authentication,
-      body,
-      formData,
-      options,
-      ...rest
-    } = expandReferences(params)(state);
+    const auth = setAuth(
+      state.configuration,
+      params?.authentication ?? params?.auth
+    );
 
-    const auth = setAuth(state.configuration, authentication);
+    const config = mapToAxiosConfig({ ...params, url, auth });
+    // const {
+    //   query,
+    //   headers,
+    //   authentication,
+    //   body,
+    //   formData,
+    //   options,
+    //   ...rest
+    // } = expandReferences(params)(state);
 
-    return req('GET', { url, query, auth, headers, options, ...rest }).then(
-      response => {
+    // return req('GET', { url, query, auth, headers, options, ...rest }).then(
+    return http
+      .get(config)(state)
+      .then(response => {
         const nextState = composeNextState(state, response);
         if (callback) return callback(nextState);
         return nextState;
-      }
-    );
+      });
   };
 }
 
