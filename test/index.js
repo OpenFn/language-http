@@ -480,3 +480,69 @@ describe('post', () => {
     expect(finalState.data.statusCode).to.eq(302);
   });
 });
+
+describe('put', () => {
+  before(() => {
+    testServer.put('/api/fake-items/6').reply(200, function (url, body) {
+      return { body, statusCode: 200 };
+    });
+  });
+
+  it('sends a put request', async () => {
+    const state = {
+      configuration: {},
+      data: { name: 'New name' },
+    };
+    const finalState = await put('https://www.example.com/api/fake-items/6', {
+      body: state.data,
+    })(state);
+
+    expect(finalState.statusCode).to.eql(200);
+    expect(finalState.data.body).to.eql({ name: 'New name' });
+  });
+});
+
+describe('patch', () => {
+  before(() => {
+    testServer.patch('/api/fake-items/6').reply(200, function (url, body) {
+      return { body, statusCode: 200 };
+    });
+  });
+
+  it('sends a patch request', async () => {
+    const state = {
+      configuration: {},
+      data: { name: 'New name', id: 6 },
+    };
+    const finalState = await patch('https://www.example.com/api/fake-items/6', {
+      body: state.data,
+    })(state);
+
+    expect(finalState.statusCode).to.eql(200);
+    expect(finalState.data.body).to.eql({ name: 'New name' });
+  });
+});
+
+describe('delete', () => {
+  before(() => {
+    testServer.delete('/api/fake-del-items/6').reply(204, function (url, body) {
+      return {};
+    });
+  });
+
+  it('sends a delete request', async () => {
+    const state = {
+      configuration: {},
+      data: {},
+    };
+    const finalState = await del(
+      'https://www.example.com/api/fake-del-items/6',
+      {
+        options: {
+          successCodes: [204],
+        },
+      }
+    )(state);
+    expect(finalState.data.body).to.eql({});
+  });
+});
