@@ -102,7 +102,6 @@ describe('The get() function', () => {
       expect(data).to.eql({ httpStatus: 'OK', message: 'the response' });
       expect(references).to.eql([{ triggering: 'event' }]);
       expect(counter).to.eql(2);
-      console.log(nextState);
     });
   });
 
@@ -493,12 +492,14 @@ describe('put', () => {
       configuration: {},
       data: { name: 'New name' },
     };
-    const finalState = await put('https://www.example.com/api/fake-items/6', {
-      body: state.data,
-    })(state);
+    const finalState = await execute(
+      put('https://www.example.com/api/fake-items/6', {
+        body: state.data,
+      })
+    )(state);
 
-    expect(finalState.statusCode).to.eql(200);
-    expect(finalState.data.body).to.eql({ name: 'New name' });
+    expect(finalState.data.body.statusCode).to.eql(200);
+    expect(finalState.data.body.body).to.eql({ name: 'New name' });
   });
 });
 
@@ -514,19 +515,21 @@ describe('patch', () => {
       configuration: {},
       data: { name: 'New name', id: 6 },
     };
-    const finalState = await patch('https://www.example.com/api/fake-items/6', {
-      body: state.data,
-    })(state);
+    const finalState = await execute(
+      patch('https://www.example.com/api/fake-items/6', {
+        body: state.data,
+      })
+    )(state);
 
-    expect(finalState.statusCode).to.eql(200);
-    expect(finalState.data.body).to.eql({ name: 'New name' });
+    expect(finalState.data.body.statusCode).to.eql(200);
+    expect(finalState.data.body.body).to.eql({ id: 6, name: 'New name' });
   });
 });
 
 describe('delete', () => {
   before(() => {
     testServer.delete('/api/fake-del-items/6').reply(204, function (url, body) {
-      return {};
+      return JSON.stringify({});
     });
   });
 
@@ -535,14 +538,17 @@ describe('delete', () => {
       configuration: {},
       data: {},
     };
-    const finalState = await del(
-      'https://www.example.com/api/fake-del-items/6',
-      {
+    const finalState = await execute(
+      del('https://www.example.com/api/fake-del-items/6', {
         options: {
           successCodes: [204],
         },
-      }
+      })
     )(state);
-    expect(finalState.data.body).to.eql({});
+
+    // TODO: fix this interface, if `Utils.tryJson` cleanly converts the 
+    // response body, it won't be under the `body` key. See `put()` example
+    // above where we have to look inside `data.body.body`.
+    expect(finalState.data).to.eql({});
   });
 });
