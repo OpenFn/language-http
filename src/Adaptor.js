@@ -212,34 +212,39 @@ export function post(path, params, callback) {
  */
 export function put(path, params, callback) {
   return state => {
+    // const url = setUrl(state.configuration, path);
+
+    // const {
+    //   query,
+    //   headers,
+    //   authentication,
+    //   body,
+    //   formData,
+    //   options,
+    //   ...rest
+    // } = expandReferences(params)(state);
+    path = expandReferences(path)(state);
+
+    params = expandReferences(params)(state);
+
+    console.log('params', params);
+
     const url = setUrl(state.configuration, path);
 
-    const {
-      query,
-      headers,
-      authentication,
-      body,
-      formData,
-      options,
-      ...rest
-    } = expandReferences(params)(state);
+    const auth = setAuth(
+      state.configuration,
+      params?.authentication ?? params?.auth
+    );
 
-    const auth = setAuth(state.configuration, authentication);
+    const config = mapToAxiosConfig({ ...params, url, auth });
 
-    return req('PUT', {
-      url,
-      query,
-      body,
-      formData,
-      auth,
-      headers,
-      options,
-      ...rest,
-    }).then(response => {
-      const nextState = composeNextState(state, response);
-      if (callback) return callback(nextState);
-      return nextState;
-    });
+    return http
+      .put(config)(state)
+      .then(response => {
+        const nextState = composeNextState(state, response.data);
+        if (callback) return callback(nextState);
+        return nextState;
+      });
   };
 }
 

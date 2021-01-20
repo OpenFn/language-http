@@ -470,7 +470,7 @@ describe('post', () => {
     // expect(finalState.data.body).to.contain('Content-Disposition: form-data');
   });
 
-  it.only('can set successCodes on the request', async () => {
+  it('can set successCodes on the request', async () => {
     let formData = {
       id: 'fake_id',
       parent: 'fake_parent',
@@ -489,7 +489,6 @@ describe('post', () => {
       })
     )(state);
 
-    console.log('finalState', finalState);
     expect(finalState.data.body.statusCode).to.eq(302);
   });
 });
@@ -501,7 +500,7 @@ describe('put', () => {
     });
   });
 
-  it('sends a put request', async () => {
+  it.only('sends a put request', async () => {
     const state = {
       configuration: {},
       data: { name: 'New name' },
