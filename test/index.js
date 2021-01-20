@@ -332,7 +332,7 @@ describe('get', () => {
     expect(finalState.data[1]).to.haveOwnProperty('host', 'www.example.com');
   });
 
-  it.only('can follow redirects', async () => {
+  it('can follow redirects', async () => {
     const state = {
       configuration: {},
       data: {},
@@ -361,7 +361,7 @@ describe('get', () => {
     expect(finalState.data.__cookie).to.eql('tasty_cookie=choco');
   });
 
-  it('accepts callbacks and calls them with nextState', async () => {
+  it.only('accepts callbacks and calls them with nextState', async () => {
     const state = {
       configuration: {},
       data: {},
@@ -372,7 +372,9 @@ describe('get', () => {
         return state;
       })
     )(state);
-    expect(finalState.data.id).to.eql(3);
+
+    console.log('finalState', finalState);
+    expect(finalState.data.body.id).to.eql(3);
   });
 
   it('returns a promise that contains nextState', async () => {
