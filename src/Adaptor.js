@@ -1,6 +1,6 @@
 /** @module Adaptor */
 import { req, rawRequest } from './Client';
-import { setAuth, setUrl, mapToAxiosConfig } from './Utils';
+import { setAuth, setUrl, mapToAxiosConfig, tryJson } from './Utils';
 import {
   execute as commonExecute,
   expandReferences,
@@ -82,10 +82,11 @@ __axios.interceptors.response.use(function (response) {
       );
     });
   }
+  const resData = tryJson(response.data);
   return {
     ...response,
     data: {
-      body: { ...response.data },
+      ...resData,
       __cookie: keepCookies?.length === 1 ? keepCookies[0] : keepCookies,
       __headers: response.headers,
     },

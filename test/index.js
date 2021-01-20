@@ -410,7 +410,7 @@ describe('post', () => {
       });
   });
 
-  it.only('can set JSON on the request body', async () => {
+  it('can set JSON on the request body', async () => {
     const state = {
       configuration: {},
       data: { name: 'test', age: 24 },
@@ -422,7 +422,7 @@ describe('post', () => {
     expect(finalState.data.body).to.eql({ name: 'test', age: 24 });
   });
 
-  it('can set data via Form param on the request body', async () => {
+  it.only('can set data via Form param on the request body', async () => {
     let form = {
       username: 'fake',
       password: 'fake_pass',
@@ -435,10 +435,13 @@ describe('post', () => {
     const finalState = await execute(
       post('https://www.example.com/api/fake-form', {
         form: state.data,
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       })
     )(state);
-    expect(finalState.data.body).to.eql('username=fake&password=fake_pass');
+
+    expect(finalState.data.body).to.eql({
+      username: 'fake',
+      password: 'fake_pass',
+    });
   });
 
   it('can set FormData on the request body', async () => {
