@@ -260,15 +260,15 @@ describe('get', () => {
       })
     )(state);
 
-    console.log('finalState', finalState.data);
-    expect(finalState.data).to.eql([
-      '/api/fake',
-      {
-        authorization: 'Basic aGVsbG86dGhlcmU=',
-        host: 'www.example.com',
-        'x-openfn': 'testing',
-      },
-    ]);
+    expect(finalState.data[1]).to.haveOwnProperty('x-openfn', 'testing');
+
+    expect(finalState.data[1]).to.haveOwnProperty(
+      'authorization',
+      'Basic aGVsbG86dGhlcmU='
+    );
+
+    expect(finalState.data[1]).to.haveOwnProperty('host', 'www.example.com');
+
     expect(finalState.references).to.eql([{ triggering: 'event' }]);
   });
 

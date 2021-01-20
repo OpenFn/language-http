@@ -82,7 +82,7 @@ export function get(path, params, callback) {
     return http
       .get(config)(state)
       .then(response => {
-        const nextState = composeNextState(state, response);
+        const nextState = composeNextState(state, response.data);
         if (callback) return callback(nextState);
         return nextState;
       });
