@@ -1,4 +1,5 @@
 import { head } from 'language-common/lib/http';
+import FormData from 'form-data';
 
 export function setUrl(configuration, path) {
   if (configuration && configuration.baseUrl)
@@ -39,10 +40,31 @@ export function tryJson(data) {
 
 export function mapToAxiosConfig(requestConfig) {
   console.log('rawRequestconfig', requestConfig);
+
+  const form = new FormData();
+
+  const formData = requestConfig?.formData || requestConfig?.form;
+
   let headers = requestConfig?.headers;
+
   if (requestConfig?.gzip === true) {
     headers = { ...headers, 'Accept-Encoding': 'gzip, deflate' };
   }
+
+  if (formData) {
+    Object.entries(requestConfig.formData).forEach(element => {
+      form.append(element[0], element[1]);
+    });
+
+    const formHeaders = form.getHeaders();
+
+    console.log('formHeaders', formHeaders);
+
+    headers = { ...headers, ...formHeaders };
+  }
+
+  console.log('form', form);
+
   return {
     ...requestConfig,
     url: requestConfig?.url ?? requestConfig?.uri,
@@ -57,9 +79,7 @@ export function mapToAxiosConfig(requestConfig) {
       ...requestConfig?.query,
     },
     // paramsSerializer,
-    data:
-      requestConfig?.data ??
-      (requestConfig?.body || requestConfig?.form || requestConfig?.formData),
+    data: requestConfig?.data ?? (requestConfig?.body || form),
     // timeouts,
     // withCredentials,
     // adapter,

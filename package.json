@@ -17,6 +17,7 @@
     "cheerio": "^1.0.0-rc.3",
     "cheerio-tableparser": "^1.0.1",
     "csv-parse": "^4.10.1",
+    "form-data": "^3.0.0",
     "import": "0.0.6",
     "language-common": "github:openfn/language-common#export_axios",
     "request": "^2.72.0",

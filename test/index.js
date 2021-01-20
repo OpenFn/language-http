@@ -1,6 +1,8 @@
 import Adaptor from '../src';
 import { expect } from 'chai';
 import nock from 'nock';
+// import { FormData } from 'form-data';
+// var FormData = require('form-data');
 
 const { execute, get, post, put, patch, del, alterState } = Adaptor;
 
@@ -422,7 +424,7 @@ describe('post', () => {
     expect(finalState.data.body).to.eql({ name: 'test', age: 24 });
   });
 
-  it.only('can set data via Form param on the request body', async () => {
+  it('can set data via Form param on the request body', async () => {
     let form = {
       username: 'fake',
       password: 'fake_pass',
@@ -444,12 +446,14 @@ describe('post', () => {
     });
   });
 
-  it('can set FormData on the request body', async () => {
+  it.only('can set FormData on the request body', async () => {
+    // console.log('formData', FormData.default);
     let formData = {
       id: 'fake_id',
       parent: 'fake_parent',
       mobile_phone: 'fake_phone',
     };
+
     const state = {
       configuration: {},
       data: formData,
@@ -462,7 +466,8 @@ describe('post', () => {
         },
       })
     )(state);
-    expect(finalState.data.body).to.contain('Content-Disposition: form-data');
+    console.log('finalState', finalState);
+    // expect(finalState.data.body).to.contain('Content-Disposition: form-data');
   });
 
   it('can set successCodes on the request', async () => {
@@ -475,7 +480,6 @@ describe('post', () => {
       configuration: {},
       data: formData,
     };
-
     const finalState = await execute(
       post('https://www.example.com/api/fake-custom-success-codes', {
         formData: state => {
