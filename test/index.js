@@ -361,7 +361,7 @@ describe('get', () => {
     expect(finalState.data.__cookie).to.eql('tasty_cookie=choco');
   });
 
-  it.only('accepts callbacks and calls them with nextState', async () => {
+  it('accepts callbacks and calls them with nextState', async () => {
     const state = {
       configuration: {},
       data: {},
@@ -373,7 +373,6 @@ describe('get', () => {
       })
     )(state);
 
-    console.log('finalState', finalState);
     expect(finalState.data.body.id).to.eql(3);
   });
 
@@ -386,7 +385,7 @@ describe('get', () => {
     const finalState = await execute(
       get('https://www.example.com/api/fake-promise', {})
     )(state).then(state => state);
-    expect(finalState.data.id).to.eql(3);
+    expect(finalState.data.body.id).to.eql(3);
   });
 });
 
