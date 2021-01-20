@@ -18,8 +18,9 @@
     "cheerio-tableparser": "^1.0.1",
     "csv-parse": "^4.10.1",
     "import": "0.0.6",
-    "language-common": "github:openfn/language-common#v1.0.0",
-    "request": "^2.72.0"
+    "language-common": "github:openfn/language-common#export_axios",
+    "request": "^2.72.0",
+    "tough-cookie": "^4.0.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.12.10",

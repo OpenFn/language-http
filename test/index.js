@@ -225,9 +225,9 @@ describe('get', () => {
     testServer.get('/api/fake-cookies').reply(
       200,
       function (url, body) {
-        return url;
+        return { url };
       },
-      { 'Set-Cookie': 'tasty_cookie=choco' }
+      { 'Set-Cookie': ['tasty_cookie=choco'] }
     );
 
     testServer.get('/api/fake-callback').reply(200, function (url, body) {
@@ -245,7 +245,7 @@ describe('get', () => {
     nock.cleanAll();
   });
 
-  it.only('accepts headers', async () => {
+  it('accepts headers', async () => {
     const state = {
       configuration: {
         username: 'hello',
@@ -274,7 +274,7 @@ describe('get', () => {
     expect(finalState.references).to.eql([{ triggering: 'event' }]);
   });
 
-  it.only('accepts authentication for http basic auth', async () => {
+  it('accepts authentication for http basic auth', async () => {
     const state = {
       configuration: {
         username: 'hello',
@@ -297,7 +297,7 @@ describe('get', () => {
     expect(finalState.data[1]).to.haveOwnProperty('host', 'www.example.com');
   });
 
-  it.only('can enable gzip', async () => {
+  it('can enable gzip', async () => {
     const state = {
       configuration: {},
       data: {},
@@ -317,7 +317,7 @@ describe('get', () => {
     expect(finalState.data[1]).to.haveOwnProperty('host', 'www.example.com');
   });
 
-  it.only('allows query strings to be set', async () => {
+  it('allows query strings to be set', async () => {
     const state = {
       configuration: {},
       data: {},
@@ -346,7 +346,7 @@ describe('get', () => {
     expect(finalState.data.body).to.eql('/api/fake-endpoint-3');
   });
 
-  it('can keep and reuse cookies', async () => {
+  it.only('can keep and reuse cookies', async () => {
     const state = {
       configuration: {},
       data: {},
@@ -357,6 +357,7 @@ describe('get', () => {
         keepCookie: true,
       })
     )(state);
+
     expect(finalState.data.__cookie).to.eql('tasty_cookie=choco');
   });
 
