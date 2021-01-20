@@ -500,7 +500,7 @@ describe('put', () => {
     });
   });
 
-  it.only('sends a put request', async () => {
+  it('sends a put request', async () => {
     const state = {
       configuration: {},
       data: { name: 'New name' },
@@ -523,7 +523,7 @@ describe('patch', () => {
     });
   });
 
-  it('sends a patch request', async () => {
+  it.only('sends a patch request', async () => {
     const state = {
       configuration: {},
       data: { name: 'New name', id: 6 },
