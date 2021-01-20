@@ -38,6 +38,7 @@ export function tryJson(data) {
 }
 
 export function mapToAxiosConfig(requestConfig) {
+  console.log('rawRequestconfig', requestConfig);
   let headers = requestConfig?.headers;
   if (requestConfig?.gzip === true) {
     headers = { ...headers, 'Accept-Encoding': 'gzip, deflate' };
@@ -50,7 +51,11 @@ export function mapToAxiosConfig(requestConfig) {
     // transformRequest,
     // transformResponse,
     headers,
-    params: requestConfig?.params ?? requestConfig?.qs,
+    params: {
+      ...requestConfig?.params,
+      ...requestConfig?.qs,
+      ...requestConfig?.query,
+    },
     // paramsSerializer,
     data:
       requestConfig?.data ??

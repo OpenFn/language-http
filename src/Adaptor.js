@@ -58,7 +58,7 @@ export function get(path, params, callback) {
   return state => {
     path = expandReferences(path)(state);
 
-    // params = expandReferences(params)(state);
+    params = expandReferences(params)(state);
     console.log('params', params);
     const url = setUrl(state.configuration, path);
 

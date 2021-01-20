@@ -317,7 +317,7 @@ describe('get', () => {
     expect(finalState.data[1]).to.haveOwnProperty('host', 'www.example.com');
   });
 
-  it('allows query strings to be set', async () => {
+  it.only('allows query strings to be set', async () => {
     const state = {
       configuration: {},
       data: {},
@@ -326,12 +326,10 @@ describe('get', () => {
     const finalState = await execute(
       get('https://www.example.com/api/fake', { query: { id: 1 } })
     )(state);
-    expect(finalState.data).to.eql([
-      '/api/fake?id=1',
-      {
-        host: 'www.example.com',
-      },
-    ]);
+
+    expect(finalState.data[0]).to.eql('/api/fake?id=1');
+
+    expect(finalState.data[1]).to.haveOwnProperty('host', 'www.example.com');
   });
 
   it('can follow redirects', async () => {
