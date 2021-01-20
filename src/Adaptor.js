@@ -20,19 +20,6 @@ import parse from 'csv-parse';
 import { __axios } from 'language-common/lib/http';
 import tough from 'tough-cookie';
 
-// KEEP THIS HERE FOR NOTES
-// const {
-//   query,
-//   headers,
-//   authentication,
-//   body,
-//   formData,
-//   options,
-//   ...rest
-// } = expandReferences(params)(state);
-
-// return req('GET', { url, query, auth, headers, options, ...rest }).then(
-
 /**
  * Execute a sequence of operations.
  * Wraps `language-common/execute`, and prepends initial state for http.
@@ -70,7 +57,7 @@ __axios.interceptors.request.use(function (config) {
 __axios.interceptors.response.use(function (response) {
   let cookies;
   let keepCookies = [];
-
+  console.log('Res from axios', response);
   if (response.headers['set-cookie']) {
     if (response.headers['set-cookie'] instanceof Array)
       cookies = response.headers['set-cookie']?.map(Cookie.parse);
@@ -304,34 +291,31 @@ export function patch(path, params, callback) {
  */
 export function del(path, params, callback) {
   return state => {
+    // path = recursivelyExpandReferences(path)(state);
+
+    // params = recursivelyExpandReferences(params)(state);
+
+    console.log('params', params);
+
     const url = setUrl(state.configuration, path);
 
-    const {
-      query,
-      headers,
-      authentication,
-      body,
-      formData,
-      options,
-      ...rest
-    } = expandReferences(params)(state);
+    const auth = setAuth(
+      state.configuration,
+      params?.authentication ?? params?.auth
+    );
 
-    const auth = setAuth(state.configuration, authentication);
+    const config = mapToAxiosConfig({ ...params, url, auth });
 
-    return req('DELETE', {
-      url,
-      query,
-      body,
-      formData,
-      options,
-      auth,
-      headers,
-      ...rest,
-    }).then(response => {
-      const nextState = composeNextState(state, response);
-      if (callback) return callback(nextState);
-      return nextState;
-    });
+    console.log('config', config);
+
+    return http
+      .delete(config)(state)
+      .then(response => {
+        console.log('res', response);
+        const nextState = composeNextState(state, response.data);
+        if (callback) return callback(nextState);
+        return nextState;
+      });
   };
 }
 

@@ -523,7 +523,7 @@ describe('patch', () => {
     });
   });
 
-  it.only('sends a patch request', async () => {
+  it('sends a patch request', async () => {
     const state = {
       configuration: {},
       data: { name: 'New name', id: 6 },
@@ -539,14 +539,17 @@ describe('patch', () => {
   });
 });
 
+// TODO: FIX EXPAND REFRENCES LANGUAGE COMMON FOR NULLS,[],{}.
+// Test only passes if expandReferences is commented out from del in language-common
+
 describe('delete', () => {
   before(() => {
     testServer.delete('/api/fake-del-items/6').reply(204, function (url, body) {
-      return JSON.stringify({});
+      return { ...body };
     });
   });
 
-  it('sends a delete request', async () => {
+  it.only('sends a delete request', async () => {
     const state = {
       configuration: {},
       data: {},
@@ -562,6 +565,6 @@ describe('delete', () => {
     // TODO: fix this interface, if `Utils.tryJson` cleanly converts the
     // response body, it won't be under the `body` key. See `put()` example
     // above where we have to look inside `data.body.body`.
-    expect(finalState.data).to.eql({});
+    expect(finalState.data.body).to.eql({});
   });
 });

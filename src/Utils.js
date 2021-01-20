@@ -42,7 +42,7 @@ export function tryJson(data) {
 export function mapToAxiosConfig(requestConfig) {
   console.log('rawRequestconfig', requestConfig);
 
-  const form = new FormData();
+  let form = null;
 
   const formData = requestConfig?.formData || requestConfig?.form;
 
@@ -53,6 +53,7 @@ export function mapToAxiosConfig(requestConfig) {
   }
 
   if (formData) {
+    form = new FormData();
     Object.entries(requestConfig.formData).forEach(element => {
       form.append(element[0], element[1]);
     });
