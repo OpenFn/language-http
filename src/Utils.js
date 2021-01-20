@@ -1,3 +1,5 @@
+import { head } from 'language-common/lib/http';
+
 export function setUrl(configuration, path) {
   if (configuration && configuration.baseUrl)
     return configuration.baseUrl + path;
@@ -36,6 +38,10 @@ export function tryJson(data) {
 }
 
 export function mapToAxiosConfig(requestConfig) {
+  let headers = requestConfig?.headers;
+  if (requestConfig?.gzip === true) {
+    headers = { ...headers, 'Accept-Encoding': 'gzip, deflate' };
+  }
   return {
     ...requestConfig,
     url: requestConfig?.url ?? requestConfig?.uri,
@@ -43,7 +49,7 @@ export function mapToAxiosConfig(requestConfig) {
     // baseURL,
     // transformRequest,
     // transformResponse,
-    // headers,
+    headers,
     params: requestConfig?.params ?? requestConfig?.qs,
     // paramsSerializer,
     data:

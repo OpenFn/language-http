@@ -297,7 +297,7 @@ describe('get', () => {
     expect(finalState.data[1]).to.haveOwnProperty('host', 'www.example.com');
   });
 
-  it('can enable gzip', async () => {
+  it.only('can enable gzip', async () => {
     const state = {
       configuration: {},
       data: {},
@@ -307,13 +307,14 @@ describe('get', () => {
       get('https://www.example.com/api/fake', { gzip: true })
     )(state);
 
-    expect(finalState.data).to.eql([
-      '/api/fake',
-      {
-        'accept-encoding': 'gzip, deflate',
-        host: 'www.example.com',
-      },
-    ]);
+    expect(finalState.data[0]).to.eql('/api/fake');
+
+    expect(finalState.data[1]).to.haveOwnProperty(
+      'accept-encoding',
+      'gzip, deflate'
+    );
+
+    expect(finalState.data[1]).to.haveOwnProperty('host', 'www.example.com');
   });
 
   it('allows query strings to be set', async () => {
