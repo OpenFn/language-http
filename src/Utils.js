@@ -94,7 +94,12 @@ export function mapToAxiosConfig(requestConfig) {
     // onDownloadProgress,
     // maxContentLength,
     // maxBodyLength,
-    // validateStatus,
+    validateStatus: function (status) {
+      return (
+        (status >= 200 && status < 300) ||
+        requestConfig?.options?.successCodes?.includes(status)
+      );
+    },
     maxRedirects:
       requestConfig?.maxRedirects ??
       (requestConfig?.followAllRedirects === false ? 0 : 5),

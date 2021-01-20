@@ -408,7 +408,7 @@ describe('post', () => {
     testServer
       .post('/api/fake-custom-success-codes')
       .reply(302, function (url, body) {
-        return { body, statusCode: 302 };
+        return { ...body, statusCode: 302 };
       });
   });
 
@@ -446,7 +446,7 @@ describe('post', () => {
     });
   });
 
-  it.only('can set FormData on the request body', async () => {
+  it('can set FormData on the request body', async () => {
     // console.log('formData', FormData.default);
     let formData = {
       id: 'fake_id',
@@ -470,7 +470,7 @@ describe('post', () => {
     // expect(finalState.data.body).to.contain('Content-Disposition: form-data');
   });
 
-  it('can set successCodes on the request', async () => {
+  it.only('can set successCodes on the request', async () => {
     let formData = {
       id: 'fake_id',
       parent: 'fake_parent',
@@ -482,13 +482,15 @@ describe('post', () => {
     };
     const finalState = await execute(
       post('https://www.example.com/api/fake-custom-success-codes', {
-        formData: state => {
+        body: state => {
           return state.data;
         },
         options: { successCodes: [302] },
       })
     )(state);
-    expect(finalState.data.statusCode).to.eq(302);
+
+    console.log('finalState', finalState);
+    expect(finalState.data.body.statusCode).to.eq(302);
   });
 });
 
