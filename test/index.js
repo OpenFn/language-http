@@ -219,7 +219,7 @@ describe('get', () => {
       })
       .get('/api/fake-endpoint-3')
       .reply(200, function (url, body) {
-        return url;
+        return { url };
       });
 
     testServer.get('/api/fake-cookies').reply(
@@ -332,7 +332,7 @@ describe('get', () => {
     expect(finalState.data[1]).to.haveOwnProperty('host', 'www.example.com');
   });
 
-  it('can follow redirects', async () => {
+  it.only('can follow redirects', async () => {
     const state = {
       configuration: {},
       data: {},
@@ -343,10 +343,10 @@ describe('get', () => {
         headers: { followAllRedirects: true },
       })
     )(state);
-    expect(finalState.data.body).to.eql('/api/fake-endpoint-3');
+    expect(finalState.data.body.url).to.eql('/api/fake-endpoint-3');
   });
 
-  it.only('can keep and reuse cookies', async () => {
+  it('can keep and reuse cookies', async () => {
     const state = {
       configuration: {},
       data: {},

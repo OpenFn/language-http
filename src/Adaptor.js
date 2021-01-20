@@ -42,37 +42,37 @@ var Cookie = tough.Cookie;
 var cookiejar = new tough.CookieJar();
 
 __axios.interceptors.request.use(function (config) {
-  cookiejar.getCookies(config.url, function (err, cookies) {
-    config.headers.cookie = cookies.join('; ');
+  cookiejar?.getCookies(config.url, function (err, cookies) {
+    config.headers.cookie = cookies?.join('; ');
   });
   return config;
 });
 
 __axios.interceptors.response.use(function (response) {
   let cookies;
-
-  if (response.headers['set-cookie'] instanceof Array)
-    cookies = response.headers['set-cookie'].map(Cookie.parse);
-  else cookies = [Cookie.parse(response.headers['set-cookie'])];
-
   let keepCookies = [];
 
-  response.headers['set-cookie'].forEach(function (c) {
-    cookiejar.setCookie(
-      Cookie.parse(c),
-      response.config.url,
-      function (err, cookie) {
-        if (response.config.keepCookie) {
-          keepCookies.push(cookie.cookieString());
-        }
-      }
-    );
-  });
+  if (response.headers['set-cookie']) {
+    if (response.headers['set-cookie'] instanceof Array)
+      cookies = response.headers['set-cookie']?.map(Cookie.parse);
+    else cookies = [Cookie.parse(response.headers['set-cookie'])];
 
+    response.headers['set-cookie']?.forEach(function (c) {
+      cookiejar.setCookie(
+        Cookie.parse(c),
+        response.config.url,
+        function (err, cookie) {
+          if (response.config?.keepCookie) {
+            keepCookies?.push(cookie?.cookieString());
+          }
+        }
+      );
+    });
+  }
   return {
     ...response,
     data: {
-      ...response.data,
+      body: { ...response.data },
       __cookie: keepCookies?.length === 1 ? keepCookies[0] : keepCookies,
       __headers: response.headers,
     },

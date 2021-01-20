@@ -74,7 +74,9 @@ export function mapToAxiosConfig(requestConfig) {
     // maxContentLength,
     // maxBodyLength,
     // validateStatus,
-    // maxRedirects,
+    maxRedirects:
+      requestConfig?.maxRedirects ??
+      (requestConfig?.followAllRedirects === false ? 0 : 5),
     // socketPath,
     httpAgent: requestConfig?.httpAgent ?? requestConfig?.agent,
     // httpsAgent,
