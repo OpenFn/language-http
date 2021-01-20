@@ -260,6 +260,8 @@ describe('get', () => {
       })
     )(state);
 
+    expect(finalState.data[0]).to.eql('/api/fake');
+
     expect(finalState.data[1]).to.haveOwnProperty('x-openfn', 'testing');
 
     expect(finalState.data[1]).to.haveOwnProperty(
@@ -272,7 +274,7 @@ describe('get', () => {
     expect(finalState.references).to.eql([{ triggering: 'event' }]);
   });
 
-  it('accepts authentication for http basic auth', async () => {
+  it.only('accepts authentication for http basic auth', async () => {
     const state = {
       configuration: {
         username: 'hello',
@@ -285,13 +287,14 @@ describe('get', () => {
       state
     );
 
-    expect(finalState.data).to.eql([
-      '/api/fake',
-      {
-        authorization: 'Basic aGVsbG86dGhlcmU=',
-        host: 'www.example.com',
-      },
-    ]);
+    expect(finalState.data[0]).to.eql('/api/fake');
+
+    expect(finalState.data[1]).to.haveOwnProperty(
+      'authorization',
+      'Basic aGVsbG86dGhlcmU='
+    );
+
+    expect(finalState.data[1]).to.haveOwnProperty('host', 'www.example.com');
   });
 
   it('can enable gzip', async () => {
