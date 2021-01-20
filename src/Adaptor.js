@@ -14,6 +14,19 @@ import parse from 'csv-parse';
 import { __axios } from 'language-common/lib/http';
 import tough from 'tough-cookie';
 
+// KEEP THIS HERE FOR NOTES
+// const {
+//   query,
+//   headers,
+//   authentication,
+//   body,
+//   formData,
+//   options,
+//   ...rest
+// } = expandReferences(params)(state);
+
+// return req('GET', { url, query, auth, headers, options, ...rest }).then(
+
 /**
  * Execute a sequence of operations.
  * Wraps `language-common/execute`, and prepends initial state for http.
@@ -103,7 +116,9 @@ export function get(path, params, callback) {
     path = expandReferences(path)(state);
 
     params = expandReferences(params)(state);
+
     console.log('params', params);
+
     const url = setUrl(state.configuration, path);
 
     const auth = setAuth(
@@ -112,17 +127,7 @@ export function get(path, params, callback) {
     );
 
     const config = mapToAxiosConfig({ ...params, url, auth });
-    // const {
-    //   query,
-    //   headers,
-    //   authentication,
-    //   body,
-    //   formData,
-    //   options,
-    //   ...rest
-    // } = expandReferences(params)(state);
 
-    // return req('GET', { url, query, auth, headers, options, ...rest }).then(
     return http
       .get(config)(state)
       .then(response => {
@@ -138,6 +143,7 @@ export function get(path, params, callback) {
  * @public
  * @example
  *  post("/myendpoint", {
+ * @function
  *      body: {"foo": "bar"},
  *      headers: {"content-type": "application/json"},
  *      authentication: {username: "user", password: "pass"},
@@ -146,7 +152,6 @@ export function get(path, params, callback) {
  *      return state;
  *    }
  *  )
- * @function
  * @param {string} path - Path to resource
  * @param {object} params - Body, Query, Headers and Authentication parameters
  * @param {function} callback - (Optional) Callback function
@@ -154,34 +159,28 @@ export function get(path, params, callback) {
  */
 export function post(path, params, callback) {
   return state => {
+    path = expandReferences(path)(state);
+
+    params = expandReferences(params)(state);
+
+    console.log('params', params);
+
     const url = setUrl(state.configuration, path);
 
-    const {
-      query,
-      headers,
-      authentication,
-      body,
-      formData,
-      options,
-      ...rest
-    } = expandReferences(params)(state);
+    const auth = setAuth(
+      state.configuration,
+      params?.authentication ?? params?.auth
+    );
 
-    const auth = setAuth(state.configuration, authentication);
+    const config = mapToAxiosConfig({ ...params, url, auth });
 
-    return req('POST', {
-      url,
-      query,
-      body,
-      auth,
-      headers,
-      formData,
-      options,
-      ...rest,
-    }).then(response => {
-      const nextState = composeNextState(state, response);
-      if (callback) return callback(nextState);
-      return nextState;
-    });
+    return http
+      .post(config)(state)
+      .then(response => {
+        const nextState = composeNextState(state, response.data);
+        if (callback) return callback(nextState);
+        return nextState;
+      });
   };
 }
 

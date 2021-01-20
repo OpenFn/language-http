@@ -410,7 +410,7 @@ describe('post', () => {
       });
   });
 
-  it('can set JSON on the request body', async () => {
+  it.only('can set JSON on the request body', async () => {
     const state = {
       configuration: {},
       data: { name: 'test', age: 24 },
