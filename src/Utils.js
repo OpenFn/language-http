@@ -1,5 +1,6 @@
 import { head } from 'language-common/lib/http';
 import FormData from 'form-data';
+import { mapValues } from 'lodash/fp';
 
 export function setUrl(configuration, path) {
   if (configuration && configuration.baseUrl)
@@ -98,10 +99,28 @@ export function mapToAxiosConfig(requestConfig) {
       requestConfig?.maxRedirects ??
       (requestConfig?.followAllRedirects === false ? 0 : 5),
     // socketPath,
-    httpAgent: requestConfig?.httpAgent ?? requestConfig?.agent,
+    // httpAgent: requestConfig?.httpAgent ?? requestConfig?.agent,
     // httpsAgent,
     // proxy,
     // cancelToken,
     // decompress,
+  };
+}
+
+export function recursivelyExpandReferences(thing) {
+  return state => {
+    if (typeof thing !== 'object')
+      return typeof thing == 'function' ? thing(state) : thing;
+    let result = mapValues(function (value) {
+      if (Array.isArray(value)) {
+        return value.map(item => {
+          return recursivelyExpandReferences(item)(state);
+        });
+      } else {
+        return recursivelyExpandReferences(value)(state);
+      }
+    })(thing);
+    if (Array.isArray(thing)) result = Object.values(result);
+    return result;
   };
 }

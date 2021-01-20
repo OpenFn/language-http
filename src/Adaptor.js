@@ -1,6 +1,12 @@
 /** @module Adaptor */
 import { req, rawRequest } from './Client';
-import { setAuth, setUrl, mapToAxiosConfig, tryJson } from './Utils';
+import {
+  setAuth,
+  setUrl,
+  mapToAxiosConfig,
+  tryJson,
+  recursivelyExpandReferences,
+} from './Utils';
 import {
   execute as commonExecute,
   expandReferences,
@@ -156,7 +162,7 @@ export function get(path, params, callback) {
  * @param {string} path - Path to resource
  * @param {object} params - Body, Query, Headers and Authentication parameters
  * @param {function} callback - (Optional) Callback function
- * @returns {Operation}
+ * @returns {operation}
  */
 export function post(path, params, callback) {
   return state => {
