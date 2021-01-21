@@ -1,8 +1,6 @@
 import Adaptor from '../src';
 import { expect } from 'chai';
 import nock from 'nock';
-// import { FormData } from 'form-data';
-// var FormData = require('form-data');
 
 const { execute, get, post, put, patch, del, alterState } = Adaptor;
 
@@ -10,7 +8,7 @@ function stdGet(state) {
   return execute(get('https://www.example.com/api/fake', {}))(state).then(
     nextState => {
       const { data, references } = nextState;
-      expect(data).to.eql({ httpStatus: 'OK', message: 'the response' });
+      expect(data.body).to.eql({ httpStatus: 'OK', message: 'the response' });
       expect(references).to.eql([{ triggering: 'event' }]);
     }
   );
@@ -20,7 +18,7 @@ function clientReq(method, state) {
   return execute(method('https://www.example.com/api/fake', {}))(state).then(
     nextState => {
       const { data, references } = nextState;
-      expect(data).to.eql({ httpStatus: 'OK', message: 'the response' });
+      expect(data.body).to.eql({ httpStatus: 'OK', message: 'the response' });
       expect(references).to.eql([{ a: 1 }]);
     }
   );
@@ -101,7 +99,7 @@ describe('The get() function', () => {
       })
     )(state).then(nextState => {
       const { data, references, counter } = nextState;
-      expect(data).to.eql({ httpStatus: 'OK', message: 'the response' });
+      expect(data.body).to.eql({ httpStatus: 'OK', message: 'the response' });
       expect(references).to.eql([{ triggering: 'event' }]);
       expect(counter).to.eql(2);
     });
@@ -262,16 +260,20 @@ describe('get', () => {
       })
     )(state);
 
-    expect(finalState.data[0]).to.eql('/api/fake');
+    console.log('finalState', finalState);
+    expect(finalState.data.body[0]).to.eql('/api/fake');
 
-    expect(finalState.data[1]).to.haveOwnProperty('x-openfn', 'testing');
+    expect(finalState.data.body[1]).to.haveOwnProperty('x-openfn', 'testing');
 
-    expect(finalState.data[1]).to.haveOwnProperty(
+    expect(finalState.data.body[1]).to.haveOwnProperty(
       'authorization',
       'Basic aGVsbG86dGhlcmU='
     );
 
-    expect(finalState.data[1]).to.haveOwnProperty('host', 'www.example.com');
+    expect(finalState.data.body[1]).to.haveOwnProperty(
+      'host',
+      'www.example.com'
+    );
 
     expect(finalState.references).to.eql([{ triggering: 'event' }]);
   });
@@ -289,14 +291,17 @@ describe('get', () => {
       state
     );
 
-    expect(finalState.data[0]).to.eql('/api/fake');
+    expect(finalState.data.body[0]).to.eql('/api/fake');
 
-    expect(finalState.data[1]).to.haveOwnProperty(
+    expect(finalState.data.body[1]).to.haveOwnProperty(
       'authorization',
       'Basic aGVsbG86dGhlcmU='
     );
 
-    expect(finalState.data[1]).to.haveOwnProperty('host', 'www.example.com');
+    expect(finalState.data.body[1]).to.haveOwnProperty(
+      'host',
+      'www.example.com'
+    );
   });
 
   it('can enable gzip', async () => {
@@ -309,14 +314,17 @@ describe('get', () => {
       get('https://www.example.com/api/fake', { gzip: true })
     )(state);
 
-    expect(finalState.data[0]).to.eql('/api/fake');
+    expect(finalState.data.body[0]).to.eql('/api/fake');
 
-    expect(finalState.data[1]).to.haveOwnProperty(
+    expect(finalState.data.body[1]).to.haveOwnProperty(
       'accept-encoding',
       'gzip, deflate'
     );
 
-    expect(finalState.data[1]).to.haveOwnProperty('host', 'www.example.com');
+    expect(finalState.data.body[1]).to.haveOwnProperty(
+      'host',
+      'www.example.com'
+    );
   });
 
   it('allows query strings to be set', async () => {
@@ -329,9 +337,12 @@ describe('get', () => {
       get('https://www.example.com/api/fake', { query: { id: 1 } })
     )(state);
 
-    expect(finalState.data[0]).to.eql('/api/fake?id=1');
+    expect(finalState.data.body[0]).to.eql('/api/fake?id=1');
 
-    expect(finalState.data[1]).to.haveOwnProperty('host', 'www.example.com');
+    expect(finalState.data.body[1]).to.haveOwnProperty(
+      'host',
+      'www.example.com'
+    );
   });
 
   it('can follow redirects', async () => {
@@ -436,14 +447,18 @@ describe('post', () => {
 
     const finalState = await execute(
       post('https://www.example.com/api/fake-form', {
-        form: state.data,
+        form: state => {
+          return state.data;
+        },
       })
     )(state);
 
-    expect(finalState.data.body).to.eql({
-      username: 'fake',
-      password: 'fake_pass',
-    });
+    expect(finalState.data.body).to.contain(
+      'Content-Disposition: form-data; name="username"\r\n\r\n'
+    );
+    expect(finalState.data.body).to.contain(
+      'Content-Disposition: form-data; name="password"\r\n\r\n'
+    );
   });
 
   it('can set FormData on the request body', async () => {
@@ -466,23 +481,30 @@ describe('post', () => {
         },
       })
     )(state);
-    console.log('finalState', finalState);
-    // expect(finalState.data.body).to.contain('Content-Disposition: form-data');
+    console.log('typeof', typeof finalState.data.body);
+    console.log('finalState', finalState.data.body);
+
+    expect(finalState.data.body).to.contain(
+      'Content-Disposition: form-data; name="username"\r\n\r\n'
+    );
+    expect(finalState.data.body).to.contain(
+      'Content-Disposition: form-data; name="password"\r\n\r\n'
+    );
   });
 
   it('can set successCodes on the request', async () => {
-    let formData = {
+    let data = {
       id: 'fake_id',
       parent: 'fake_parent',
       mobile_phone: 'fake_phone',
     };
     const state = {
       configuration: {},
-      data: formData,
+      data,
     };
     const finalState = await execute(
       post('https://www.example.com/api/fake-custom-success-codes', {
-        body: state => {
+        data: state => {
           return state.data;
         },
         options: { successCodes: [302] },
@@ -549,7 +571,7 @@ describe('delete', () => {
     });
   });
 
-  it.only('sends a delete request', async () => {
+  it('sends a delete request', async () => {
     const state = {
       configuration: {},
       data: {},

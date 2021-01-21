@@ -1,6 +1,6 @@
 import { head } from 'language-common/lib/http';
 import FormData from 'form-data';
-import { mapValues } from 'lodash/fp';
+import { mapValues, isEmpty } from 'lodash/fp';
 
 export function setUrl(configuration, path) {
   if (configuration && configuration.baseUrl)
@@ -40,8 +40,6 @@ export function tryJson(data) {
 }
 
 export function mapToAxiosConfig(requestConfig) {
-  console.log('rawRequestconfig', requestConfig);
-
   let form = null;
 
   const formData = requestConfig?.formData || requestConfig?.form;
@@ -51,21 +49,16 @@ export function mapToAxiosConfig(requestConfig) {
   if (requestConfig?.gzip === true) {
     headers = { ...headers, 'Accept-Encoding': 'gzip, deflate' };
   }
-
-  if (formData) {
+  if (!isEmpty(formData)) {
     form = new FormData();
-    Object.entries(requestConfig.formData).forEach(element => {
+    Object.entries(formData).forEach(element => {
       form.append(element[0], element[1]);
     });
 
     const formHeaders = form.getHeaders();
 
-    console.log('formHeaders', formHeaders);
-
     headers = { ...headers, ...formHeaders };
   }
-
-  console.log('form', form);
 
   return {
     ...requestConfig,

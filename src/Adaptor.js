@@ -57,7 +57,11 @@ __axios.interceptors.request.use(function (config) {
 __axios.interceptors.response.use(function (response) {
   let cookies;
   let keepCookies = [];
-  console.log('Res from axios', response);
+  response = {
+    ...response,
+    httpStatus: response.status,
+    message: response.statusText,
+  };
   if (response.headers['set-cookie']) {
     if (response.headers['set-cookie'] instanceof Array)
       cookies = response.headers['set-cookie']?.map(Cookie.parse);
@@ -291,9 +295,9 @@ export function patch(path, params, callback) {
  */
 export function del(path, params, callback) {
   return state => {
-    // path = recursivelyExpandReferences(path)(state);
+    path = expandReferences(path)(state);
 
-    // params = recursivelyExpandReferences(params)(state);
+    params = expandReferences(params)(state);
 
     console.log('params', params);
 
@@ -306,12 +310,9 @@ export function del(path, params, callback) {
 
     const config = mapToAxiosConfig({ ...params, url, auth });
 
-    console.log('config', config);
-
     return http
       .delete(config)(state)
       .then(response => {
-        console.log('res', response);
         const nextState = composeNextState(state, response.data);
         if (callback) return callback(nextState);
         return nextState;
