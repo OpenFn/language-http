@@ -260,7 +260,6 @@ describe('get', () => {
       })
     )(state);
 
-    console.log('finalState', finalState);
     expect(finalState.data.body[0]).to.eql('/api/fake');
 
     expect(finalState.data.body[1]).to.haveOwnProperty('x-openfn', 'testing');
@@ -481,8 +480,6 @@ describe('post', () => {
         },
       })
     )(state);
-    console.log('typeof', typeof finalState.data.body);
-    console.log('finalState', finalState.data.body);
 
     expect(finalState.data.body).to.contain(
       'Content-Disposition: form-data; name="username"\r\n\r\n'

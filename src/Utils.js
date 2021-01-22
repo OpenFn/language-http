@@ -1,4 +1,3 @@
-import { head } from 'language-common/lib/http';
 import FormData from 'form-data';
 import { mapValues, isEmpty } from 'lodash/fp';
 

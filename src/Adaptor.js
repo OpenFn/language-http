@@ -1,24 +1,20 @@
 /** @module Adaptor */
 import { req, rawRequest } from './Client';
-import {
-  setAuth,
-  setUrl,
-  mapToAxiosConfig,
-  tryJson,
-  recursivelyExpandReferences,
-} from './Utils';
+import { setAuth, setUrl, mapToAxiosConfig, tryJson } from './Utils';
 import {
   execute as commonExecute,
   expandReferences,
   composeNextState,
   http,
-} from 'language-common';
+} from '@openfn/language-common';
 import cheerio from 'cheerio';
 import cheerioTableparser from 'cheerio-tableparser';
 import fs from 'fs';
 import parse from 'csv-parse';
-import { __axios } from 'language-common/lib/http';
 import tough from 'tough-cookie';
+
+const { axios } = http;
+exports.axios = axios;
 
 /**
  * Execute a sequence of operations.
@@ -47,14 +43,14 @@ export function execute(...operations) {
 var Cookie = tough.Cookie;
 var cookiejar = new tough.CookieJar();
 
-__axios.interceptors.request.use(function (config) {
+axios.interceptors.request.use(function (config) {
   cookiejar?.getCookies(config.url, function (err, cookies) {
     config.headers.cookie = cookies?.join('; ');
   });
   return config;
 });
 
-__axios.interceptors.response.use(function (response) {
+axios.interceptors.response.use(function (response) {
   let cookies;
   let keepCookies = [];
   response = {
@@ -112,10 +108,7 @@ __axios.interceptors.response.use(function (response) {
 export function get(path, params, callback) {
   return state => {
     path = expandReferences(path)(state);
-
     params = expandReferences(params)(state);
-
-    console.log('params', params);
 
     const url = setUrl(state.configuration, path);
 
@@ -158,10 +151,7 @@ export function get(path, params, callback) {
 export function post(path, params, callback) {
   return state => {
     path = expandReferences(path)(state);
-
     params = expandReferences(params)(state);
-
-    console.log('params', params);
 
     const url = setUrl(state.configuration, path);
 
@@ -204,10 +194,7 @@ export function post(path, params, callback) {
 export function put(path, params, callback) {
   return state => {
     path = expandReferences(path)(state);
-
     params = expandReferences(params)(state);
-
-    console.log('params', params);
 
     const url = setUrl(state.configuration, path);
 
@@ -250,10 +237,7 @@ export function put(path, params, callback) {
 export function patch(path, params, callback) {
   return state => {
     path = expandReferences(path)(state);
-
     params = expandReferences(params)(state);
-
-    console.log('params', params);
 
     const url = setUrl(state.configuration, path);
 
@@ -296,10 +280,7 @@ export function patch(path, params, callback) {
 export function del(path, params, callback) {
   return state => {
     path = expandReferences(path)(state);
-
     params = expandReferences(params)(state);
-
-    console.log('params', params);
 
     const url = setUrl(state.configuration, path);
 
@@ -425,4 +406,4 @@ export {
   lastReferenceValue,
   merge,
   sourceValue,
-} from 'language-common';
+} from '@openfn/language-common';
