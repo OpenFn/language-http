@@ -403,16 +403,18 @@ describe('get', () => {
 
 describe('post', () => {
   before(() => {
-    testServer.post('/api/fake-json').reply(200, function (url, body) {
+    testServer.post('/api/fake-json').reply(200, (uri, requestBody) => {
       return body;
     });
 
-    testServer.post('/api/fake-form').reply(200, function (url, body) {
+    testServer.post('/api/fake-form').reply(200, (uri, requestBody) => {
       return body;
     });
 
-    testServer.post('/api/fake-formData').reply(200, function (url, body) {
-      return body;
+    testServer.post('/api/fake-formData').reply(200, (uri, requestBody) => {
+      console.log('uri in nock', uri);
+      console.log('body in nock', requestBody);
+      return requestBody;
     });
 
     testServer
@@ -439,6 +441,7 @@ describe('post', () => {
       username: 'fake',
       password: 'fake_pass',
     };
+
     const state = {
       configuration: {},
       data: form,
@@ -460,8 +463,7 @@ describe('post', () => {
     );
   });
 
-  it('can set FormData on the request body', async () => {
-    // console.log('formData', FormData.default);
+  it.only('can set FormData on the request body', async () => {
     let formData = {
       id: 'fake_id',
       parent: 'fake_parent',
@@ -474,12 +476,13 @@ describe('post', () => {
     };
 
     const finalState = await execute(
-      post('https://www.example.com/api/fake-formData', {
-        formData: state => {
-          return state.data;
-        },
+      // post('https://www.example.com/api/fake-formData', {
+      post('https://enl6objtwwaa.x.pipedream.net/', {
+        formData: state => state.data,
       })
     )(state);
+
+    // console.log(finalState);
 
     expect(finalState.data.body).to.contain(
       'Content-Disposition: form-data; name="username"\r\n\r\n'

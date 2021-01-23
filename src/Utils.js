@@ -39,25 +39,25 @@ export function tryJson(data) {
 }
 
 export function mapToAxiosConfig(requestConfig) {
-  let form = null;
-
-  const formData = requestConfig?.formData || requestConfig?.form;
-
   let headers = requestConfig?.headers;
 
   if (requestConfig?.gzip === true) {
     headers = { ...headers, 'Accept-Encoding': 'gzip, deflate' };
   }
-  if (!isEmpty(formData)) {
-    form = new FormData();
-    Object.entries(formData).forEach(element => {
-      form.append(element[0], element[1]);
+
+  const formConfig = requestConfig?.formData || requestConfig?.form;
+  const form = new FormData();
+
+  if (!isEmpty(formConfig)) {
+    Object.entries(formConfig).forEach(([key, value]) => {
+      form.append(key, value);
     });
 
     const formHeaders = form.getHeaders();
-
     headers = { ...headers, ...formHeaders };
   }
+
+  const data = requestConfig.data || requestConfig.body || form;
 
   return {
     ...requestConfig,
@@ -73,7 +73,7 @@ export function mapToAxiosConfig(requestConfig) {
       ...requestConfig?.query,
     },
     // paramsSerializer,
-    data: requestConfig?.data ?? (requestConfig?.body || form),
+    data,
     // timeouts,
     // withCredentials,
     // adapter,
