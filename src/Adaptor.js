@@ -162,13 +162,15 @@ export function post(path, params, callback) {
 
     const config = mapToAxiosConfig({ ...params, url, auth });
 
-    return http
-      .post(config)(state)
-      .then(response => {
-        const nextState = composeNextState(state, response.data);
-        if (callback) return callback(nextState);
-        return nextState;
-      });
+    // NOTE: that in order to use multipart/form submissions, we call axios.post
+    // directly so as to avoid calling 'expandReferences' on the config (in
+    // language-common.http.post) once we've set up the 'form-data' module.
+    // Elsewhere, calling expandReferences multiple times is harmless.
+    return axios.post(config.url, config.data, { ...config }).then(response => {
+      const nextState = composeNextState(state, response.data);
+      if (callback) return callback(nextState);
+      return nextState;
+    });
   };
 }
 

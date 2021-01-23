@@ -453,10 +453,10 @@ describe('post', () => {
     )(state);
 
     expect(finalState.data.body).to.contain(
-      'Content-Disposition: form-data; name="username"\r\n\r\n'
+      'Content-Disposition: form-data; name="username"\r\n\r\nfake'
     );
     expect(finalState.data.body).to.contain(
-      'Content-Disposition: form-data; name="password"\r\n\r\n'
+      'Content-Disposition: form-data; name="password"\r\n\r\nfake_pass'
     );
   });
 
@@ -482,10 +482,13 @@ describe('post', () => {
     )(state);
 
     expect(finalState.data.body).to.contain(
-      'Content-Disposition: form-data; name="username"\r\n\r\n'
+      'Content-Disposition: form-data; name="id"\r\n\r\nfake_id'
     );
     expect(finalState.data.body).to.contain(
-      'Content-Disposition: form-data; name="password"\r\n\r\n'
+      'Content-Disposition: form-data; name="parent"\r\n\r\nfake_parent'
+    );
+    expect(finalState.data.body).to.contain(
+      'Content-Disposition: form-data; name="mobile_phone"\r\n\r\nfake_phone'
     );
   });
 
