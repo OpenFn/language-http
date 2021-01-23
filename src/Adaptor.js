@@ -161,7 +161,15 @@ export function post(path, params, callback) {
     );
 
     const config = mapToAxiosConfig({ ...params, url, auth });
+    console.log('chaiwa config', config);
 
+    // NOTE: that in order to use multipart/form-data submissions, we call axios
+    // directly so as to avoid calling 'expandReferences' on the params once
+    // we're using the 'form-data' module;
+    // return axios
+    //   .post(config.url, config.data, {
+    //     ...config,
+    //   })
     return http
       .post(config)(state)
       .then(response => {

@@ -412,8 +412,6 @@ describe('post', () => {
     });
 
     testServer.post('/api/fake-formData').reply(200, (uri, requestBody) => {
-      console.log('uri in nock', uri);
-      console.log('body in nock', requestBody);
       return requestBody;
     });
 
@@ -449,11 +447,11 @@ describe('post', () => {
 
     const finalState = await execute(
       post('https://www.example.com/api/fake-form', {
-        form: state => {
-          return state.data;
-        },
+        form: state => state.data,
       })
     )(state);
+
+    console.log(finalState);
 
     expect(finalState.data.body).to.contain(
       'Content-Disposition: form-data; name="username"\r\n\r\n'
@@ -463,7 +461,7 @@ describe('post', () => {
     );
   });
 
-  it.only('can set FormData on the request body', async () => {
+  it('can set FormData on the request body', async () => {
     let formData = {
       id: 'fake_id',
       parent: 'fake_parent',
@@ -476,19 +474,19 @@ describe('post', () => {
     };
 
     const finalState = await execute(
-      // post('https://www.example.com/api/fake-formData', {
-      post('https://enl6objtwwaa.x.pipedream.net/', {
+      post('https://www.example.com/api/fake-formData', {
         formData: state => state.data,
       })
     )(state);
 
-    // console.log(finalState);
-
     expect(finalState.data.body).to.contain(
-      'Content-Disposition: form-data; name="username"\r\n\r\n'
+      'Content-Disposition: form-data; name="id"\r\n\r\nfake_id'
     );
     expect(finalState.data.body).to.contain(
-      'Content-Disposition: form-data; name="password"\r\n\r\n'
+      'Content-Disposition: form-data; name="parent"\r\n\r\nfake_parent'
+    );
+    expect(finalState.data.body).to.contain(
+      'Content-Disposition: form-data; name="mobile_phone"\r\n\r\nfake_phone'
     );
   });
 

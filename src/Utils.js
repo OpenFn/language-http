@@ -53,15 +53,14 @@ export function mapToAxiosConfig(requestConfig) {
       form.append(key, value);
     });
 
-    const formHeaders = form.getHeaders();
-    headers = { ...headers, ...formHeaders };
+    headers = { ...headers, ...form.getHeaders() };
   }
 
-  const data = requestConfig.data || requestConfig.body || form;
+  const data = requestConfig?.data || requestConfig?.body || form;
 
   return {
     ...requestConfig,
-    url: requestConfig?.url ?? requestConfig?.uri,
+    url: requestConfig.url ?? requestConfig.uri,
     // method,
     // baseURL,
     // transformRequest,
