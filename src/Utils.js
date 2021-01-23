@@ -104,21 +104,3 @@ export function mapToAxiosConfig(requestConfig) {
     // decompress,
   };
 }
-
-export function recursivelyExpandReferences(thing) {
-  return state => {
-    if (typeof thing !== 'object')
-      return typeof thing == 'function' ? thing(state) : thing;
-    let result = mapValues(function (value) {
-      if (Array.isArray(value)) {
-        return value.map(item => {
-          return recursivelyExpandReferences(item)(state);
-        });
-      } else {
-        return recursivelyExpandReferences(value)(state);
-      }
-    })(thing);
-    if (Array.isArray(thing)) result = Object.values(result);
-    return result;
-  };
-}

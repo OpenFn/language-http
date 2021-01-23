@@ -161,20 +161,14 @@ export function post(path, params, callback) {
     );
 
     const config = mapToAxiosConfig({ ...params, url, auth });
-    console.log('axios data', config.data);
-    console.log('axios headers', config.headers);
 
-    return http.post('https://enl6objtwwaa.x.pipedream.net/', config.data, {
-      headers: config.headers,
-    });
-
-    // return http
-    //   .post(config)(state)
-    //   .then(response => {
-    //     const nextState = composeNextState(state, response.data);
-    //     if (callback) return callback(nextState);
-    //     return nextState;
-    //   });
+    return http
+      .post(config)(state)
+      .then(response => {
+        const nextState = composeNextState(state, response.data);
+        if (callback) return callback(nextState);
+        return nextState;
+      });
   };
 }
 
