@@ -133,7 +133,6 @@ export function get(path, params, callback) {
  * @public
  * @example
  *  post("/myendpoint", {
- * @function
  *      body: {"foo": "bar"},
  *      headers: {"content-type": "application/json"},
  *      authentication: {username: "user", password: "pass"},
@@ -142,6 +141,7 @@ export function get(path, params, callback) {
  *      return state;
  *    }
  *  )
+ * @function
  * @param {string} path - Path to resource
  * @param {object} params - Body, Query, Headers and Authentication parameters
  * @param {function} callback - (Optional) Callback function

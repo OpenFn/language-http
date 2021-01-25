@@ -1,5 +1,5 @@
 import FormData from 'form-data';
-import { mapValues, isEmpty } from 'lodash/fp';
+import { isEmpty } from 'lodash/fp';
 
 export function setUrl(configuration, path) {
   if (configuration && configuration.baseUrl)
@@ -102,23 +102,5 @@ export function mapToAxiosConfig(requestConfig) {
     // proxy,
     // cancelToken,
     // decompress,
-  };
-}
-
-export function recursivelyExpandReferences(thing) {
-  return state => {
-    if (typeof thing !== 'object')
-      return typeof thing == 'function' ? thing(state) : thing;
-    let result = mapValues(function (value) {
-      if (Array.isArray(value)) {
-        return value.map(item => {
-          return recursivelyExpandReferences(item)(state);
-        });
-      } else {
-        return recursivelyExpandReferences(value)(state);
-      }
-    })(thing);
-    if (Array.isArray(thing)) result = Object.values(result);
-    return result;
   };
 }
