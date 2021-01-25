@@ -1,6 +1,6 @@
 {
-  "name": "language-http",
-  "version": "2.4.15",
+  "name": "@openfn/language-http",
+  "version": "3.0.0",
   "description": "An HTTP request language package for use with Open Function",
   "main": "lib/index.js",
   "scripts": {
@@ -14,12 +14,15 @@
     "lib/"
   ],
   "dependencies": {
+    "@openfn/language-common": "1.1.0",
     "cheerio": "^1.0.0-rc.3",
     "cheerio-tableparser": "^1.0.1",
     "csv-parse": "^4.10.1",
+    "form-data": "^3.0.0",
     "import": "0.0.6",
-    "language-common": "github:openfn/language-common#v0.3.0",
-    "request": "^2.72.0"
+    "request": "^2.72.0",
+    "tough-cookie": "^4.0.0",
+    "lodash": "^4.17.19"
   },
   "devDependencies": {
     "@babel/cli": "^7.12.10",

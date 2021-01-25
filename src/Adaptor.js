@@ -1,15 +1,20 @@
 /** @module Adaptor */
 import { req, rawRequest } from './Client';
-import { setAuth, setUrl } from './Utils';
+import { setAuth, setUrl, mapToAxiosConfig, tryJson } from './Utils';
 import {
   execute as commonExecute,
   expandReferences,
   composeNextState,
-} from 'language-common';
+  http,
+} from '@openfn/language-common';
 import cheerio from 'cheerio';
 import cheerioTableparser from 'cheerio-tableparser';
 import fs from 'fs';
 import parse from 'csv-parse';
+import tough from 'tough-cookie';
+
+const { axios } = http;
+exports.axios = axios;
 
 /**
  * Execute a sequence of operations.
@@ -34,6 +39,53 @@ export function execute(...operations) {
   };
 }
 
+// axios interceptors
+var Cookie = tough.Cookie;
+var cookiejar = new tough.CookieJar();
+
+axios.interceptors.request.use(function (config) {
+  cookiejar?.getCookies(config.url, function (err, cookies) {
+    config.headers.cookie = cookies?.join('; ');
+  });
+  return config;
+});
+
+axios.interceptors.response.use(function (response) {
+  let cookies;
+  let keepCookies = [];
+  response = {
+    ...response,
+    httpStatus: response.status,
+    message: response.statusText,
+  };
+  if (response.headers['set-cookie']) {
+    if (response.headers['set-cookie'] instanceof Array)
+      cookies = response.headers['set-cookie']?.map(Cookie.parse);
+    else cookies = [Cookie.parse(response.headers['set-cookie'])];
+
+    response.headers['set-cookie']?.forEach(function (c) {
+      cookiejar.setCookie(
+        Cookie.parse(c),
+        response.config.url,
+        function (err, cookie) {
+          if (response.config?.keepCookie) {
+            keepCookies?.push(cookie?.cookieString());
+          }
+        }
+      );
+    });
+  }
+  const resData = tryJson(response.data);
+  return {
+    ...response,
+    data: {
+      ...resData,
+      __cookie: keepCookies?.length === 1 ? keepCookies[0] : keepCookies,
+      __headers: response.headers,
+    },
+  };
+});
+
 /**
  * Make a GET request
  * @public
@@ -55,27 +107,25 @@ export function execute(...operations) {
  */
 export function get(path, params, callback) {
   return state => {
+    path = expandReferences(path)(state);
+    params = expandReferences(params)(state);
+
     const url = setUrl(state.configuration, path);
 
-    const {
-      query,
-      headers,
-      authentication,
-      body,
-      formData,
-      options,
-      ...rest
-    } = expandReferences(params)(state);
+    const auth = setAuth(
+      state.configuration,
+      params?.authentication ?? params?.auth
+    );
 
-    const auth = setAuth(state.configuration, authentication);
+    const config = mapToAxiosConfig({ ...params, url, auth });
 
-    return req('GET', { url, query, auth, headers, options, ...rest }).then(
-      response => {
-        const nextState = composeNextState(state, response);
+    return http
+      .get(config)(state)
+      .then(response => {
+        const nextState = composeNextState(state, response.data);
         if (callback) return callback(nextState);
         return nextState;
-      }
-    );
+      });
   };
 }
 
@@ -84,6 +134,7 @@ export function get(path, params, callback) {
  * @public
  * @example
  *  post("/myendpoint", {
+ * @function
  *      body: {"foo": "bar"},
  *      headers: {"content-type": "application/json"},
  *      authentication: {username: "user", password: "pass"},
@@ -92,39 +143,31 @@ export function get(path, params, callback) {
  *      return state;
  *    }
  *  )
- * @function
  * @param {string} path - Path to resource
  * @param {object} params - Body, Query, Headers and Authentication parameters
  * @param {function} callback - (Optional) Callback function
- * @returns {Operation}
+ * @returns {operation}
  */
 export function post(path, params, callback) {
   return state => {
+    path = expandReferences(path)(state);
+    params = expandReferences(params)(state);
+
     const url = setUrl(state.configuration, path);
 
-    const {
-      query,
-      headers,
-      authentication,
-      body,
-      formData,
-      options,
-      ...rest
-    } = expandReferences(params)(state);
+    const auth = setAuth(
+      state.configuration,
+      params?.authentication ?? params?.auth
+    );
 
-    const auth = setAuth(state.configuration, authentication);
+    const config = mapToAxiosConfig({ ...params, url, auth });
 
-    return req('POST', {
-      url,
-      query,
-      body,
-      auth,
-      headers,
-      formData,
-      options,
-      ...rest,
-    }).then(response => {
-      const nextState = composeNextState(state, response);
+    // NOTE: that in order to use multipart/form submissions, we call axios.post
+    // directly so as to avoid calling 'expandReferences' on the config (in
+    // language-common.http.post) once we've set up the 'form-data' module.
+    // Elsewhere, calling expandReferences multiple times is harmless.
+    return axios.post(config.url, config.data, { ...config }).then(response => {
+      const nextState = composeNextState(state, response.data);
       if (callback) return callback(nextState);
       return nextState;
     });
@@ -152,34 +195,25 @@ export function post(path, params, callback) {
  */
 export function put(path, params, callback) {
   return state => {
+    path = expandReferences(path)(state);
+    params = expandReferences(params)(state);
+
     const url = setUrl(state.configuration, path);
 
-    const {
-      query,
-      headers,
-      authentication,
-      body,
-      formData,
-      options,
-      ...rest
-    } = expandReferences(params)(state);
+    const auth = setAuth(
+      state.configuration,
+      params?.authentication ?? params?.auth
+    );
 
-    const auth = setAuth(state.configuration, authentication);
+    const config = mapToAxiosConfig({ ...params, url, auth });
 
-    return req('PUT', {
-      url,
-      query,
-      body,
-      formData,
-      auth,
-      headers,
-      options,
-      ...rest,
-    }).then(response => {
-      const nextState = composeNextState(state, response);
-      if (callback) return callback(nextState);
-      return nextState;
-    });
+    return http
+      .put(config)(state)
+      .then(response => {
+        const nextState = composeNextState(state, response.data);
+        if (callback) return callback(nextState);
+        return nextState;
+      });
   };
 }
 
@@ -204,34 +238,25 @@ export function put(path, params, callback) {
  */
 export function patch(path, params, callback) {
   return state => {
+    path = expandReferences(path)(state);
+    params = expandReferences(params)(state);
+
     const url = setUrl(state.configuration, path);
 
-    const {
-      query,
-      headers,
-      authentication,
-      body,
-      formData,
-      options,
-      ...rest
-    } = expandReferences(params)(state);
+    const auth = setAuth(
+      state.configuration,
+      params?.authentication ?? params?.auth
+    );
 
-    const auth = setAuth(state.configuration, authentication);
+    const config = mapToAxiosConfig({ ...params, url, auth });
 
-    return req('PATCH', {
-      url,
-      query,
-      body,
-      formData,
-      options,
-      auth,
-      headers,
-      ...rest,
-    }).then(response => {
-      const nextState = composeNextState(state, response);
-      if (callback) return callback(nextState);
-      return nextState;
-    });
+    return http
+      .patch(config)(state)
+      .then(response => {
+        const nextState = composeNextState(state, response.data);
+        if (callback) return callback(nextState);
+        return nextState;
+      });
   };
 }
 
@@ -256,34 +281,25 @@ export function patch(path, params, callback) {
  */
 export function del(path, params, callback) {
   return state => {
+    path = expandReferences(path)(state);
+    params = expandReferences(params)(state);
+
     const url = setUrl(state.configuration, path);
 
-    const {
-      query,
-      headers,
-      authentication,
-      body,
-      formData,
-      options,
-      ...rest
-    } = expandReferences(params)(state);
+    const auth = setAuth(
+      state.configuration,
+      params?.authentication ?? params?.auth
+    );
 
-    const auth = setAuth(state.configuration, authentication);
+    const config = mapToAxiosConfig({ ...params, url, auth });
 
-    return req('DELETE', {
-      url,
-      query,
-      body,
-      formData,
-      options,
-      auth,
-      headers,
-      ...rest,
-    }).then(response => {
-      const nextState = composeNextState(state, response);
-      if (callback) return callback(nextState);
-      return nextState;
-    });
+    return http
+      .delete(config)(state)
+      .then(response => {
+        const nextState = composeNextState(state, response.data);
+        if (callback) return callback(nextState);
+        return nextState;
+      });
   };
 }
 
@@ -392,4 +408,4 @@ export {
   lastReferenceValue,
   merge,
   sourceValue,
-} from 'language-common';
+} from '@openfn/language-common';

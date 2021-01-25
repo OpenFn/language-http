@@ -8,7 +8,7 @@ function stdGet(state) {
   return execute(get('https://www.example.com/api/fake', {}))(state).then(
     nextState => {
       const { data, references } = nextState;
-      expect(data).to.eql({ httpStatus: 'OK', message: 'the response' });
+      expect(data.body).to.eql({ httpStatus: 'OK', message: 'the response' });
       expect(references).to.eql([{ triggering: 'event' }]);
     }
   );
@@ -18,7 +18,7 @@ function clientReq(method, state) {
   return execute(method('https://www.example.com/api/fake', {}))(state).then(
     nextState => {
       const { data, references } = nextState;
-      expect(data).to.eql({ httpStatus: 'OK', message: 'the response' });
+      expect(data.body).to.eql({ httpStatus: 'OK', message: 'the response' });
       expect(references).to.eql([{ a: 1 }]);
     }
   );
@@ -99,7 +99,7 @@ describe('The get() function', () => {
       })
     )(state).then(nextState => {
       const { data, references, counter } = nextState;
-      expect(data).to.eql({ httpStatus: 'OK', message: 'the response' });
+      expect(data.body).to.eql({ httpStatus: 'OK', message: 'the response' });
       expect(references).to.eql([{ triggering: 'event' }]);
       expect(counter).to.eql(2);
     });
@@ -219,15 +219,15 @@ describe('get', () => {
       })
       .get('/api/fake-endpoint-3')
       .reply(200, function (url, body) {
-        return url;
+        return { url };
       });
 
     testServer.get('/api/fake-cookies').reply(
       200,
       function (url, body) {
-        return url;
+        return { url };
       },
-      { 'Set-Cookie': 'tasty_cookie=choco' }
+      { 'Set-Cookie': ['tasty_cookie=choco'] }
     );
 
     testServer.get('/api/fake-callback').reply(200, function (url, body) {
@@ -260,14 +260,20 @@ describe('get', () => {
       })
     )(state);
 
-    expect(finalState.data).to.eql([
-      '/api/fake',
-      {
-        authorization: 'Basic aGVsbG86dGhlcmU=',
-        host: 'www.example.com',
-        'x-openfn': 'testing',
-      },
-    ]);
+    expect(finalState.data.body[0]).to.eql('/api/fake');
+
+    expect(finalState.data.body[1]).to.haveOwnProperty('x-openfn', 'testing');
+
+    expect(finalState.data.body[1]).to.haveOwnProperty(
+      'authorization',
+      'Basic aGVsbG86dGhlcmU='
+    );
+
+    expect(finalState.data.body[1]).to.haveOwnProperty(
+      'host',
+      'www.example.com'
+    );
+
     expect(finalState.references).to.eql([{ triggering: 'event' }]);
   });
 
@@ -284,13 +290,17 @@ describe('get', () => {
       state
     );
 
-    expect(finalState.data).to.eql([
-      '/api/fake',
-      {
-        authorization: 'Basic aGVsbG86dGhlcmU=',
-        host: 'www.example.com',
-      },
-    ]);
+    expect(finalState.data.body[0]).to.eql('/api/fake');
+
+    expect(finalState.data.body[1]).to.haveOwnProperty(
+      'authorization',
+      'Basic aGVsbG86dGhlcmU='
+    );
+
+    expect(finalState.data.body[1]).to.haveOwnProperty(
+      'host',
+      'www.example.com'
+    );
   });
 
   it('can enable gzip', async () => {
@@ -303,13 +313,17 @@ describe('get', () => {
       get('https://www.example.com/api/fake', { gzip: true })
     )(state);
 
-    expect(finalState.data).to.eql([
-      '/api/fake',
-      {
-        'accept-encoding': 'gzip, deflate',
-        host: 'www.example.com',
-      },
-    ]);
+    expect(finalState.data.body[0]).to.eql('/api/fake');
+
+    expect(finalState.data.body[1]).to.haveOwnProperty(
+      'accept-encoding',
+      'gzip, deflate'
+    );
+
+    expect(finalState.data.body[1]).to.haveOwnProperty(
+      'host',
+      'www.example.com'
+    );
   });
 
   it('allows query strings to be set', async () => {
@@ -321,12 +335,13 @@ describe('get', () => {
     const finalState = await execute(
       get('https://www.example.com/api/fake', { query: { id: 1 } })
     )(state);
-    expect(finalState.data).to.eql([
-      '/api/fake?id=1',
-      {
-        host: 'www.example.com',
-      },
-    ]);
+
+    expect(finalState.data.body[0]).to.eql('/api/fake?id=1');
+
+    expect(finalState.data.body[1]).to.haveOwnProperty(
+      'host',
+      'www.example.com'
+    );
   });
 
   it('can follow redirects', async () => {
@@ -340,7 +355,7 @@ describe('get', () => {
         headers: { followAllRedirects: true },
       })
     )(state);
-    expect(finalState.data.body).to.eql('/api/fake-endpoint-3');
+    expect(finalState.data.body.url).to.eql('/api/fake-endpoint-3');
   });
 
   it('can keep and reuse cookies', async () => {
@@ -354,6 +369,7 @@ describe('get', () => {
         keepCookie: true,
       })
     )(state);
+
     expect(finalState.data.__cookie).to.eql('tasty_cookie=choco');
   });
 
@@ -368,7 +384,8 @@ describe('get', () => {
         return state;
       })
     )(state);
-    expect(finalState.data.id).to.eql(3);
+
+    expect(finalState.data.body.id).to.eql(3);
   });
 
   it('returns a promise that contains nextState', async () => {
@@ -380,7 +397,7 @@ describe('get', () => {
     const finalState = await execute(
       get('https://www.example.com/api/fake-promise', {})
     )(state).then(state => state);
-    expect(finalState.data.id).to.eql(3);
+    expect(finalState.data.body.id).to.eql(3);
   });
 });
 
@@ -401,7 +418,7 @@ describe('post', () => {
     testServer
       .post('/api/fake-custom-success-codes')
       .reply(302, function (url, body) {
-        return { body, statusCode: 302 };
+        return { ...body, statusCode: 302 };
       });
   });
 
@@ -429,19 +446,28 @@ describe('post', () => {
 
     const finalState = await execute(
       post('https://www.example.com/api/fake-form', {
-        form: state.data,
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        form: state => {
+          return state.data;
+        },
       })
     )(state);
-    expect(finalState.data.body).to.eql('username=fake&password=fake_pass');
+
+    expect(finalState.data.body).to.contain(
+      'Content-Disposition: form-data; name="username"\r\n\r\nfake'
+    );
+    expect(finalState.data.body).to.contain(
+      'Content-Disposition: form-data; name="password"\r\n\r\nfake_pass'
+    );
   });
 
   it('can set FormData on the request body', async () => {
+    // console.log('formData', FormData.default);
     let formData = {
       id: 'fake_id',
       parent: 'fake_parent',
       mobile_phone: 'fake_phone',
     };
+
     const state = {
       configuration: {},
       data: formData,
@@ -454,29 +480,38 @@ describe('post', () => {
         },
       })
     )(state);
-    expect(finalState.data.body).to.contain('Content-Disposition: form-data');
+
+    expect(finalState.data.body).to.contain(
+      'Content-Disposition: form-data; name="id"\r\n\r\nfake_id'
+    );
+    expect(finalState.data.body).to.contain(
+      'Content-Disposition: form-data; name="parent"\r\n\r\nfake_parent'
+    );
+    expect(finalState.data.body).to.contain(
+      'Content-Disposition: form-data; name="mobile_phone"\r\n\r\nfake_phone'
+    );
   });
 
   it('can set successCodes on the request', async () => {
-    let formData = {
+    let data = {
       id: 'fake_id',
       parent: 'fake_parent',
       mobile_phone: 'fake_phone',
     };
     const state = {
       configuration: {},
-      data: formData,
+      data,
     };
-
     const finalState = await execute(
       post('https://www.example.com/api/fake-custom-success-codes', {
-        formData: state => {
+        data: state => {
           return state.data;
         },
         options: { successCodes: [302] },
       })
     )(state);
-    expect(finalState.data.statusCode).to.eq(302);
+
+    expect(finalState.data.body.statusCode).to.eq(302);
   });
 });
 
@@ -526,10 +561,13 @@ describe('patch', () => {
   });
 });
 
+// TODO: FIX EXPAND REFRENCES LANGUAGE COMMON FOR NULLS,[],{}.
+// Test only passes if expandReferences is commented out from del in language-common
+
 describe('delete', () => {
   before(() => {
     testServer.delete('/api/fake-del-items/6').reply(204, function (url, body) {
-      return JSON.stringify({});
+      return { ...body };
     });
   });
 
@@ -546,9 +584,9 @@ describe('delete', () => {
       })
     )(state);
 
-    // TODO: fix this interface, if `Utils.tryJson` cleanly converts the 
+    // TODO: fix this interface, if `Utils.tryJson` cleanly converts the
     // response body, it won't be under the `body` key. See `put()` example
     // above where we have to look inside `data.body.body`.
-    expect(finalState.data).to.eql({});
+    expect(finalState.data.body).to.eql({});
   });
 });
