@@ -2,6 +2,11 @@
   "name": "@openfn/language-http",
   "version": "3.0.0",
   "description": "An HTTP request language package for use with Open Function",
+  "homepage": "https://docs.openfn.org",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/openfn/language-http.git"
+  },
   "main": "lib/index.js",
   "scripts": {
     "build": "make",
