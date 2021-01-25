@@ -1,5 +1,4 @@
 /** @module Adaptor */
-import { req, rawRequest } from './Client';
 import { setAuth, setUrl, mapToAxiosConfig, tryJson } from './Utils';
 import {
   execute as commonExecute,
@@ -335,24 +334,6 @@ export function parseXML(body, script) {
 }
 
 /**
- * Make a request using the 'request' node module.
- * @public
- * @example
- *  request(params);
- * @function
- * @param {object} params - Query, Headers and Authentication parameters
- * @returns {Operation}
- */
-export function request(params) {
-  return state => {
-    const expanded =
-      typeof params === 'string' ? params : expandReferences(params)(state);
-
-    return rawRequest(expanded);
-  };
-}
-
-/**
  * CSV-Parse for CSV conversion to JSON
  * @public
  * @example
@@ -405,6 +386,7 @@ export {
   each,
   field,
   fields,
+  http,
   lastReferenceValue,
   merge,
   sourceValue,
