@@ -1,11 +1,18 @@
 /** @module Adaptor */
-import { setAuth, setUrl, mapToAxiosConfig, tryJson } from './Utils';
+import {
+  setAuth,
+  setUrl,
+  mapToAxiosConfig,
+  tryJson,
+  assembleError,
+} from './Utils';
 import {
   execute as commonExecute,
   expandReferences,
   composeNextState,
   http,
 } from '@openfn/language-common';
+import nodeRequest from 'request';
 import cheerio from 'cheerio';
 import cheerioTableparser from 'cheerio-tableparser';
 import fs from 'fs';
@@ -161,15 +168,13 @@ export function post(path, params, callback) {
 
     const config = mapToAxiosConfig({ ...params, url, auth });
 
-    // NOTE: that in order to use multipart/form submissions, we call axios.post
-    // directly so as to avoid calling 'expandReferences' on the config (in
-    // language-common.http.post) once we've set up the 'form-data' module.
-    // Elsewhere, calling expandReferences multiple times is harmless.
-    return axios.post(config.url, config.data, { ...config }).then(response => {
-      const nextState = composeNextState(state, response.data);
-      if (callback) return callback(nextState);
-      return nextState;
-    });
+    return http
+      .post(config)(state)
+      .then(response => {
+        const nextState = composeNextState(state, response.data);
+        if (callback) return callback(nextState);
+        return nextState;
+      });
   };
 }
 
@@ -375,6 +380,33 @@ export function parseCSV(target, config) {
           resolve(composeNextState(state, output));
         });
       }
+    });
+  };
+}
+
+/**
+ * Make a request using the 'request' node module. This module is deprecated.
+ * @example
+ *  request(params);
+ * @function
+ * @param {object} params - Query, Headers and Authentication parameters
+ * @returns {Operation}
+ */
+export function request(params) {
+  return state => {
+    params = expandReferences(params)(state);
+
+    return new Promise((resolve, reject) => {
+      nodeRequest(params, (error, response, body) => {
+        error = assembleError({ error, response, params });
+        error && reject(error);
+
+        console.log(
+          '✓ Request succeeded. (The response body available in state.)'
+        );
+        const resp = tryJson(body);
+        resolve(resp);
+      });
     });
   };
 }

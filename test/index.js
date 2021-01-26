@@ -2,7 +2,7 @@ import Adaptor from '../src';
 import { expect } from 'chai';
 import nock from 'nock';
 
-const { execute, get, post, put, patch, del, alterState } = Adaptor;
+const { execute, get, post, put, patch, del, alterState, request } = Adaptor;
 
 function stdGet(state) {
   return execute(get('https://www.example.com/api/fake', {}))(state).then(
@@ -561,9 +561,6 @@ describe('patch', () => {
   });
 });
 
-// TODO: FIX EXPAND REFRENCES LANGUAGE COMMON FOR NULLS,[],{}.
-// Test only passes if expandReferences is commented out from del in language-common
-
 describe('delete', () => {
   before(() => {
     testServer.delete('/api/fake-del-items/6').reply(204, function (url, body) {
@@ -588,5 +585,30 @@ describe('delete', () => {
     // response body, it won't be under the `body` key. See `put()` example
     // above where we have to look inside `data.body.body`.
     expect(finalState.data.body).to.eql({});
+  });
+});
+
+describe('the old request operation', () => {
+  before(() => {
+    testServer.post('/api/oldEndpoint?hi=there').reply(200, function (url, body) {
+      return body;
+    });
+  });
+
+  it('sends a post request', async () => {
+    const state = {
+      configuration: {},
+      data: { a: 1 },
+    };
+    const finalState = await execute(
+      request({
+        method: 'POST',
+        url: 'https://www.example.com/api/oldEndpoint',
+        json: { a: 1 },
+        qs: { hi: 'there' },
+      })
+    )(state);
+
+    expect(finalState.body).to.eql({ a: 1 });
   });
 });
