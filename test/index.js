@@ -646,11 +646,11 @@ describe('newAgent', () => {
     const finalState = await execute(
       post('https://www.example.com/api/sslCertCheck', {
         body: state => state.data,
-        https: newAgent({ ca: state.configuration.privateKey }),
+        httpsAgent: newAgent({ ca: state.configuration.privateKey }),
       })
     )(state);
     expect(finalState.data.body).to.eql({ a: 1 });
-    expect(finalState.response.config.https.options.ca).to.eql('abc123');
+    expect(finalState.response.config.httpsAgent.options.ca).to.eql('abc123');
   });
 
   it('lets the user define a cert earlier and use it later', async () => {
@@ -669,11 +669,11 @@ describe('newAgent', () => {
         return state;
       }),
       post('https://www.example.com/api/sslCertCheck', state => {
-        return { body: state.data, https: state.agent };
+        return { body: state.data, httpsAgent: state.agent };
       })
     )(state);
     expect(finalState.data.body).to.eql({ a: 1 });
-    expect(finalState.response.config.https.options.ca).to.eql('abc123');
+    expect(finalState.response.config.httpsAgent.options.ca).to.eql('abc123');
   });
 });
 
@@ -690,14 +690,14 @@ describe('reject unauthorized allows for bad certs', () => {
 
     const finalState = await execute(
       get('https://www.example.com/api/insecureStuff', {
-        https: newAgent({ rejectUnauthorized: false }),
+        httpsAgent: newAgent({ rejectUnauthorized: false }),
         body: state => state.data,
       })
     )(state);
 
     expect(finalState.data.body).to.eql('all my secrets!');
-    expect(finalState.response.config.https.options.rejectUnauthorized).to.eql(
-      false
-    );
+    expect(
+      finalState.response.config.httpsAgent.options.rejectUnauthorized
+    ).to.eql(false);
   });
 });
