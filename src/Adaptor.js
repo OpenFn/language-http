@@ -129,7 +129,10 @@ export function get(path, params, callback) {
     return http
       .get(config)(state)
       .then(response => {
-        const nextState = composeNextState(state, response.data);
+        const nextState = {
+          ...composeNextState(state, response.data),
+          response,
+        };
         if (callback) return callback(nextState);
         return nextState;
       });
@@ -218,7 +221,10 @@ export function put(path, params, callback) {
     return http
       .put(config)(state)
       .then(response => {
-        const nextState = composeNextState(state, response.data);
+        const nextState = {
+          ...composeNextState(state, response.data),
+          response,
+        };
         if (callback) return callback(nextState);
         return nextState;
       });
@@ -261,7 +267,10 @@ export function patch(path, params, callback) {
     return http
       .patch(config)(state)
       .then(response => {
-        const nextState = composeNextState(state, response.data);
+        const nextState = {
+          ...composeNextState(state, response.data),
+          response,
+        };
         if (callback) return callback(nextState);
         return nextState;
       });
@@ -304,7 +313,10 @@ export function del(path, params, callback) {
     return http
       .delete(config)(state)
       .then(response => {
-        const nextState = composeNextState(state, response.data);
+        const nextState = {
+          ...composeNextState(state, response.data),
+          response,
+        };
         if (callback) return callback(nextState);
         return nextState;
       });

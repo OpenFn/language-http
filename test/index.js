@@ -676,3 +676,28 @@ describe('newAgent', () => {
     expect(finalState.response.config.https.options.ca).to.eql('abc123');
   });
 });
+
+describe('reject unauthorized allows for bad certs', () => {
+  before(() => {
+    testServer.get('/api/insecureStuff').reply(200, 'all my secrets!');
+  });
+
+  it('lets the user send requests while ignoring SSL', async () => {
+    const state = {
+      configuration: {},
+      data: { a: 1 },
+    };
+
+    const finalState = await execute(
+      get('https://www.example.com/api/insecureStuff', {
+        https: newAgent({ rejectUnauthorized: false }),
+        body: state => state.data,
+      })
+    )(state);
+
+    expect(finalState.data.body).to.eql('all my secrets!');
+    expect(finalState.response.config.https.options.rejectUnauthorized).to.eql(
+      false
+    );
+  });
+});

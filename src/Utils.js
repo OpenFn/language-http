@@ -1,4 +1,5 @@
 import FormData from 'form-data';
+import https from 'https';
 import { isEmpty } from 'lodash/fp';
 
 export function setUrl(configuration, path) {
@@ -62,6 +63,10 @@ export function mapToAxiosConfig(requestConfig) {
   return {
     ...requestConfig,
     url: requestConfig?.url ?? requestConfig?.uri,
+    // https:
+    //   requestConfig?.https ??
+    //   (requestConfig?.strictSSL &&
+    //     new https.Agent({ rejectUnauthorized: false })),
     // method,
     // baseURL,
     // transformRequest,
