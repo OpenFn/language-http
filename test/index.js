@@ -2,7 +2,17 @@ import Adaptor from '../src';
 import { expect } from 'chai';
 import nock from 'nock';
 
-const { execute, get, post, put, patch, del, alterState, request } = Adaptor;
+const {
+  execute,
+  get,
+  post,
+  put,
+  patch,
+  del,
+  alterState,
+  request,
+  newAgent,
+} = Adaptor;
 
 function stdGet(state) {
   return execute(get('https://www.example.com/api/fake', {}))(state).then(
@@ -446,9 +456,7 @@ describe('post', () => {
 
     const finalState = await execute(
       post('https://www.example.com/api/fake-form', {
-        form: state => {
-          return state.data;
-        },
+        form: state => state.data,
       })
     )(state);
 
@@ -461,7 +469,6 @@ describe('post', () => {
   });
 
   it('can set FormData on the request body', async () => {
-    // console.log('formData', FormData.default);
     let formData = {
       id: 'fake_id',
       parent: 'fake_parent',
@@ -590,9 +597,11 @@ describe('delete', () => {
 
 describe('the old request operation', () => {
   before(() => {
-    testServer.post('/api/oldEndpoint?hi=there').reply(200, function (url, body) {
-      return body;
-    });
+    testServer
+      .post('/api/oldEndpoint?hi=there')
+      .reply(200, function (url, body) {
+        return body;
+      });
   });
 
   it('sends a post request', async () => {
@@ -610,5 +619,60 @@ describe('the old request operation', () => {
     )(state);
 
     expect(finalState.body).to.eql({ a: 1 });
+  });
+});
+
+describe('newAgent', () => {
+  before(() => {
+    testServer
+      .post('/api/sslCertCheck')
+      .times(2)
+      .reply(200, function (url, body) {
+        // console.log(this.req);
+        return body;
+      });
+  });
+
+  it('lets the user create an https agent with a cert', async () => {
+    const state = {
+      configuration: {
+        label: 'my custom SSL cert',
+        prublicKey: 'something@mamadou.org',
+        privateKey: 'abc123',
+      },
+      data: { a: 1 },
+    };
+
+    const finalState = await execute(
+      post('https://www.example.com/api/sslCertCheck', {
+        body: state => state.data,
+        https: newAgent({ ca: state.configuration.privateKey }),
+      })
+    )(state);
+    expect(finalState.data.body).to.eql({ a: 1 });
+    expect(finalState.response.config.https.options.ca).to.eql('abc123');
+  });
+
+  it('lets the user define a cert earlier and use it later', async () => {
+    const state = {
+      configuration: {
+        label: 'my custom SSL cert',
+        prublicKey: 'something@mamadou.org',
+        privateKey: 'abc123',
+      },
+      data: { a: 1 },
+    };
+
+    const finalState = await execute(
+      alterState(state => {
+        state.agent = newAgent({ ca: state.configuration.privateKey });
+        return state;
+      }),
+      post('https://www.example.com/api/sslCertCheck', state => {
+        return { body: state.data, https: state.agent };
+      })
+    )(state);
+    expect(finalState.data.body).to.eql({ a: 1 });
+    expect(finalState.response.config.https.options.ca).to.eql('abc123');
   });
 });

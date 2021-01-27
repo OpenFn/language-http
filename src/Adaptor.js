@@ -115,7 +115,7 @@ axios.interceptors.response.use(function (response) {
 export function get(path, params, callback) {
   return state => {
     path = expandReferences(path)(state);
-    params = expandReferences(params)(state);
+    params = http.expandRequestReferences(params)(state);
 
     const url = setUrl(state.configuration, path);
 
@@ -158,10 +158,7 @@ export function get(path, params, callback) {
 export function post(path, params, callback) {
   return state => {
     path = expandReferences(path)(state);
-    const { https } = params;
-
-    // delete params.https;
-    // params = { ...expandReferences(params)(state), https };
+    params = http.expandRequestReferences(params)(state);
 
     const url = setUrl(state.configuration, path);
 
@@ -175,7 +172,10 @@ export function post(path, params, callback) {
     return http
       .post(config)(state)
       .then(response => {
-        const nextState = composeNextState(state, response.data);
+        const nextState = {
+          ...composeNextState(state, response.data),
+          response,
+        };
         if (callback) return callback(nextState);
         return nextState;
       });
@@ -204,7 +204,7 @@ export function post(path, params, callback) {
 export function put(path, params, callback) {
   return state => {
     path = expandReferences(path)(state);
-    params = expandReferences(params)(state);
+    params = http.expandRequestReferences(params)(state);
 
     const url = setUrl(state.configuration, path);
 
@@ -247,7 +247,7 @@ export function put(path, params, callback) {
 export function patch(path, params, callback) {
   return state => {
     path = expandReferences(path)(state);
-    params = expandReferences(params)(state);
+    params = http.expandRequestReferences(params)(state);
 
     const url = setUrl(state.configuration, path);
 
@@ -290,7 +290,7 @@ export function patch(path, params, callback) {
 export function del(path, params, callback) {
   return state => {
     path = expandReferences(path)(state);
-    params = expandReferences(params)(state);
+    params = http.expandRequestReferences(params)(state);
 
     const url = setUrl(state.configuration, path);
 
@@ -398,7 +398,7 @@ export function parseCSV(target, config) {
  */
 export function request(params) {
   return state => {
-    params = expandReferences(params)(state);
+    params = http.expandRequestReferences(params)(state);
 
     return new Promise((resolve, reject) => {
       nodeRequest(params, (error, response, body) => {

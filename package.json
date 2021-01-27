@@ -19,7 +19,7 @@
     "lib/"
   ],
   "dependencies": {
-    "@openfn/language-common": "1.1.1",
+    "@openfn/language-common": "1.2.2",
     "cheerio-tableparser": "^1.0.1",
     "cheerio": "^1.0.0-rc.3",
     "csv-parse": "^4.10.1",
