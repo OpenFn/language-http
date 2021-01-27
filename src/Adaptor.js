@@ -160,8 +160,8 @@ export function post(path, params, callback) {
     path = expandReferences(path)(state);
     const { https } = params;
 
-    delete params.https;
-    params = { ...expandReferences(params)(state), https };
+    // delete params.https;
+    // params = { ...expandReferences(params)(state), https };
 
     const url = setUrl(state.configuration, path);
 
