@@ -2,17 +2,7 @@ import Adaptor from '../src';
 import { expect } from 'chai';
 import nock from 'nock';
 
-const {
-  execute,
-  get,
-  post,
-  put,
-  patch,
-  del,
-  alterState,
-  request,
-  newAgent,
-} = Adaptor;
+const { execute, get, post, put, patch, del, alterState, request } = Adaptor;
 
 function stdGet(state) {
   return execute(get('https://www.example.com/api/fake', {}))(state).then(
@@ -71,18 +61,14 @@ describe('The execute() function', () => {
   });
 });
 
-const testServer = nock('https://www.example.com').persist();
+const testServer = nock('https://www.example.com');
 
 describe('The get() function', () => {
   before(() => {
-    testServer.get('/api/fake').reply(200, {
+    testServer.get('/api/fake').times(4).reply(200, {
       httpStatus: 'OK',
       message: 'the response',
     });
-  });
-
-  after(() => {
-    nock.cleanAll();
   });
 
   it('prepares nextState properly', () => {
@@ -209,9 +195,12 @@ describe('The client', () => {
 
 describe('get', () => {
   before(() => {
-    testServer.get('/api/fake').reply(200, function (url, body) {
-      return [url, this.req.headers];
-    });
+    testServer
+      .get('/api/fake')
+      .times(3)
+      .reply(200, function (url, body) {
+        return [url, this.req.headers];
+      });
 
     testServer.get('/api/fake?id=1').reply(200, function (url, body) {
       return [url, this.req.headers];
@@ -249,10 +238,6 @@ describe('get', () => {
         resolve({ url, id: 3 });
       });
     });
-  });
-
-  after(() => {
-    nock.cleanAll();
   });
 
   it('accepts headers', async () => {
@@ -622,15 +607,36 @@ describe('the old request operation', () => {
   });
 });
 
-describe('newAgent', () => {
+describe('The `agentOptions` param', () => {
   before(() => {
     testServer
       .post('/api/sslCertCheck')
-      .times(2)
-      .reply(200, function (url, body) {
-        // console.log(this.req);
-        return body;
-      });
+      .times(3)
+      .reply(200, (url, body) => body);
+  });
+
+  it('gets expanded and still works', async () => {
+    const state = {
+      configuration: {
+        label: 'my custom SSL cert',
+        prublicKey: 'something@mamadou.org',
+        privateKey: 'abc123',
+      },
+      data: { a: 1 },
+    };
+
+    const finalState = await execute(
+      alterState(state => {
+        state.httpsOptions = { ca: state.configuration.privateKey };
+        return state;
+      }),
+      post('https://www.example.com/api/sslCertCheck', {
+        body: state.data,
+        agentOptions: state => state.httpsOptions,
+      })
+    )(state);
+    expect(finalState.data.body).to.eql({ a: 1 });
+    expect(finalState.response.config.httpsAgent.options.ca).to.eql('abc123');
   });
 
   it('lets the user create an https agent with a cert', async () => {
@@ -646,7 +652,7 @@ describe('newAgent', () => {
     const finalState = await execute(
       post('https://www.example.com/api/sslCertCheck', {
         body: state => state.data,
-        httpsAgent: newAgent({ ca: state.configuration.privateKey }),
+        agentOptions: { ca: state.configuration.privateKey },
       })
     )(state);
     expect(finalState.data.body).to.eql({ a: 1 });
@@ -665,11 +671,11 @@ describe('newAgent', () => {
 
     const finalState = await execute(
       alterState(state => {
-        state.agent = newAgent({ ca: state.configuration.privateKey });
+        state.httpsOptions = { ca: state.configuration.privateKey };
         return state;
       }),
       post('https://www.example.com/api/sslCertCheck', state => {
-        return { body: state.data, httpsAgent: state.agent };
+        return { body: state.data, agentOptions: state.httpsOptions };
       })
     )(state);
     expect(finalState.data.body).to.eql({ a: 1 });
@@ -690,7 +696,7 @@ describe('reject unauthorized allows for bad certs', () => {
 
     const finalState = await execute(
       get('https://www.example.com/api/insecureStuff', {
-        httpsAgent: newAgent({ rejectUnauthorized: false }),
+        agentOptions: { rejectUnauthorized: false },
         body: state => state.data,
       })
     )(state);

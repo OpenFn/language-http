@@ -18,8 +18,6 @@ import cheerioTableparser from 'cheerio-tableparser';
 import fs from 'fs';
 import parse from 'csv-parse';
 import tough from 'tough-cookie';
-import https from 'https';
-exports.https = https;
 
 const { axios } = http;
 exports.axios = axios;
@@ -426,11 +424,6 @@ export function request(params) {
       });
     });
   };
-}
-
-// set the CA from the expression?
-export function newAgent(options) {
-  return new https.Agent(options);
 }
 
 export {
