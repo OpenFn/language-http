@@ -61,18 +61,14 @@ describe('The execute() function', () => {
   });
 });
 
-const testServer = nock('https://www.example.com').persist();
+const testServer = nock('https://www.example.com');
 
 describe('The get() function', () => {
   before(() => {
-    testServer.get('/api/fake').reply(200, {
+    testServer.get('/api/fake').times(4).reply(200, {
       httpStatus: 'OK',
       message: 'the response',
     });
-  });
-
-  after(() => {
-    nock.cleanAll();
   });
 
   it('prepares nextState properly', () => {
@@ -199,9 +195,12 @@ describe('The client', () => {
 
 describe('get', () => {
   before(() => {
-    testServer.get('/api/fake').reply(200, function (url, body) {
-      return [url, this.req.headers];
-    });
+    testServer
+      .get('/api/fake')
+      .times(3)
+      .reply(200, function (url, body) {
+        return [url, this.req.headers];
+      });
 
     testServer.get('/api/fake?id=1').reply(200, function (url, body) {
       return [url, this.req.headers];
@@ -239,10 +238,6 @@ describe('get', () => {
         resolve({ url, id: 3 });
       });
     });
-  });
-
-  after(() => {
-    nock.cleanAll();
   });
 
   it('accepts headers', async () => {
@@ -446,9 +441,7 @@ describe('post', () => {
 
     const finalState = await execute(
       post('https://www.example.com/api/fake-form', {
-        form: state => {
-          return state.data;
-        },
+        form: state => state.data,
       })
     )(state);
 
@@ -461,7 +454,6 @@ describe('post', () => {
   });
 
   it('can set FormData on the request body', async () => {
-    // console.log('formData', FormData.default);
     let formData = {
       id: 'fake_id',
       parent: 'fake_parent',
@@ -590,9 +582,11 @@ describe('delete', () => {
 
 describe('the old request operation', () => {
   before(() => {
-    testServer.post('/api/oldEndpoint?hi=there').reply(200, function (url, body) {
-      return body;
-    });
+    testServer
+      .post('/api/oldEndpoint?hi=there')
+      .reply(200, function (url, body) {
+        return body;
+      });
   });
 
   it('sends a post request', async () => {
@@ -610,5 +604,106 @@ describe('the old request operation', () => {
     )(state);
 
     expect(finalState.body).to.eql({ a: 1 });
+  });
+});
+
+describe('The `agentOptions` param', () => {
+  before(() => {
+    testServer
+      .post('/api/sslCertCheck')
+      .times(3)
+      .reply(200, (url, body) => body);
+  });
+
+  it('gets expanded and still works', async () => {
+    const state = {
+      configuration: {
+        label: 'my custom SSL cert',
+        prublicKey: 'something@mamadou.org',
+        privateKey: 'abc123',
+      },
+      data: { a: 1 },
+    };
+
+    const finalState = await execute(
+      alterState(state => {
+        state.httpsOptions = { ca: state.configuration.privateKey };
+        return state;
+      }),
+      post('https://www.example.com/api/sslCertCheck', {
+        body: state.data,
+        agentOptions: state => state.httpsOptions,
+      })
+    )(state);
+    expect(finalState.data.body).to.eql({ a: 1 });
+    expect(finalState.response.config.httpsAgent.options.ca).to.eql('abc123');
+  });
+
+  it('lets the user create an https agent with a cert', async () => {
+    const state = {
+      configuration: {
+        label: 'my custom SSL cert',
+        prublicKey: 'something@mamadou.org',
+        privateKey: 'abc123',
+      },
+      data: { a: 1 },
+    };
+
+    const finalState = await execute(
+      post('https://www.example.com/api/sslCertCheck', {
+        body: state => state.data,
+        agentOptions: { ca: state.configuration.privateKey },
+      })
+    )(state);
+    expect(finalState.data.body).to.eql({ a: 1 });
+    expect(finalState.response.config.httpsAgent.options.ca).to.eql('abc123');
+  });
+
+  it('lets the user define a cert earlier and use it later', async () => {
+    const state = {
+      configuration: {
+        label: 'my custom SSL cert',
+        prublicKey: 'something@mamadou.org',
+        privateKey: 'abc123',
+      },
+      data: { a: 1 },
+    };
+
+    const finalState = await execute(
+      alterState(state => {
+        state.httpsOptions = { ca: state.configuration.privateKey };
+        return state;
+      }),
+      post('https://www.example.com/api/sslCertCheck', state => {
+        return { body: state.data, agentOptions: state.httpsOptions };
+      })
+    )(state);
+    expect(finalState.data.body).to.eql({ a: 1 });
+    expect(finalState.response.config.httpsAgent.options.ca).to.eql('abc123');
+  });
+});
+
+describe('reject unauthorized allows for bad certs', () => {
+  before(() => {
+    testServer.get('/api/insecureStuff').reply(200, 'all my secrets!');
+  });
+
+  it('lets the user send requests while ignoring SSL', async () => {
+    const state = {
+      configuration: {},
+      data: { a: 1 },
+    };
+
+    const finalState = await execute(
+      get('https://www.example.com/api/insecureStuff', {
+        agentOptions: { rejectUnauthorized: false },
+        body: state => state.data,
+      })
+    )(state);
+
+    expect(finalState.data.body).to.eql('all my secrets!');
+    expect(
+      finalState.response.config.httpsAgent.options.rejectUnauthorized
+    ).to.eql(false);
   });
 });

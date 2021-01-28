@@ -62,6 +62,10 @@ export function mapToAxiosConfig(requestConfig) {
   return {
     ...requestConfig,
     url: requestConfig?.url ?? requestConfig?.uri,
+    // https:
+    //   requestConfig?.https ??
+    //   (requestConfig?.strictSSL &&
+    //     new https.Agent({ rejectUnauthorized: false })),
     // method,
     // baseURL,
     // transformRequest,
