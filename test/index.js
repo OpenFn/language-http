@@ -175,6 +175,12 @@ describe('get()', () => {
         resolve({ url, id: 3 });
       });
     });
+
+    testServer.get('/api/badEndpoint').reply(400, function (url, body) {
+      return new Promise((resolve, reject) => {
+        resolve({ url, id: 3 });
+      });
+    });
   });
 
   it('prepares nextState properly', () => {
@@ -388,6 +394,21 @@ describe('get()', () => {
     const finalState = await execute(
       get('https://www.example.com/api/fake-promise', {})
     )(state).then(state => state);
+    expect(finalState.data.body.id).to.eql(3);
+  });
+
+  it('throws an error for a non-2XX response', async () => {
+    const state = {
+      configuration: {},
+      data: {},
+    };
+
+    const finalState = await execute(
+      get('https://www.example.com/api/badEndpoint', {}, state => {
+        return state;
+      })
+    )(state);
+
     expect(finalState.data.body.id).to.eql(3);
   });
 });

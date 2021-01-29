@@ -92,6 +92,19 @@ axios.interceptors.response.use(function (response) {
   };
 });
 
+function handleResponse(state, response, callback) {
+  const nextState = {
+    ...composeNextState(state, response.data),
+    response,
+  };
+  return nextState;
+}
+
+function handleCallback(state, callback) {
+  if (callback) return callback(state);
+  return state;
+}
+
 /**
  * Make a GET request
  * @public
@@ -127,14 +140,8 @@ export function get(path, params, callback) {
 
     return http
       .get(config)(state)
-      .then(response => {
-        const nextState = {
-          ...composeNextState(state, response.data),
-          response,
-        };
-        if (callback) return callback(nextState);
-        return nextState;
-      });
+      .then(response => handleResponse(state, response))
+      .then(nextState => handleCallback(nextState, callback));
   };
 }
 
@@ -173,14 +180,8 @@ export function post(path, params, callback) {
 
     return http
       .post(config)(state)
-      .then(response => {
-        const nextState = {
-          ...composeNextState(state, response.data),
-          response,
-        };
-        if (callback) return callback(nextState);
-        return nextState;
-      });
+      .then(response => handleResponse(state, response))
+      .then(nextState => handleCallback(nextState, callback));
   };
 }
 
@@ -219,14 +220,8 @@ export function put(path, params, callback) {
 
     return http
       .put(config)(state)
-      .then(response => {
-        const nextState = {
-          ...composeNextState(state, response.data),
-          response,
-        };
-        if (callback) return callback(nextState);
-        return nextState;
-      });
+      .then(response => handleResponse(state, response))
+      .then(nextState => handleCallback(nextState, callback));
   };
 }
 
@@ -265,14 +260,8 @@ export function patch(path, params, callback) {
 
     return http
       .patch(config)(state)
-      .then(response => {
-        const nextState = {
-          ...composeNextState(state, response.data),
-          response,
-        };
-        if (callback) return callback(nextState);
-        return nextState;
-      });
+      .then(response => handleResponse(state, response))
+      .then(nextState => handleCallback(nextState, callback));
   };
 }
 
@@ -311,14 +300,8 @@ export function del(path, params, callback) {
 
     return http
       .delete(config)(state)
-      .then(response => {
-        const nextState = {
-          ...composeNextState(state, response.data),
-          response,
-        };
-        if (callback) return callback(nextState);
-        return nextState;
-      });
+      .then(response => handleResponse(state, response))
+      .then(nextState => handleCallback(nextState, callback));
   };
 }
 
