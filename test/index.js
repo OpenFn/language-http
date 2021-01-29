@@ -176,7 +176,8 @@ describe('get()', () => {
       });
     });
 
-    testServer.get('/api/badEndpoint').times(2).reply(400);
+    testServer.get('/api/badAuth').times(2).reply(404);
+    testServer.get('/api/crashDummy').times(2).reply(500);
   });
 
   it('prepares nextState properly', () => {
@@ -400,28 +401,28 @@ describe('get()', () => {
     };
 
     const finalState = await execute(
-      get('https://www.example.com/api/badEndpoint', {
-        options: { successCodes: [400] },
+      get('https://www.example.com/api/badAuth', {
+        options: { successCodes: [404] },
       })
     )(state);
 
-    expect(finalState.response.status).to.eql(400);
-  });
-});
-
-it('throws an error for a non-2XX response', async () => {
-  const state = {
-    configuration: {},
-    data: {},
-  };
-
-  const error = await execute(get('https://www.example.com/api/badEndpoint'))(
-    state
-  ).catch(error => {
-    return JSON.parse(error.message);
+    expect(finalState.response.status).to.eql(404);
   });
 
-  expect(error.status).to.eql(400);
+  it('throws an error for a non-2XX response', async () => {
+    const state = {
+      configuration: {},
+      data: {},
+    };
+
+    const error = await execute(get('https://www.example.com/api/crashDummy'))(
+      state
+    ).catch(error => {
+      return JSON.parse(error.message);
+    });
+
+    expect(error.status).to.eql(500);
+  });
 });
 
 describe('post', () => {
