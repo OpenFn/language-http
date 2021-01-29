@@ -92,15 +92,16 @@ axios.interceptors.response.use(function (response) {
   };
 });
 
-function handleResponse(state, response, callback) {
-  const error = assembleError({ error: response.error, response, params });
-  error && reject(error);
-
-  const nextState = {
-    ...composeNextState(state, response.data),
+function handleResponse(state, response) {
+  const error = assembleError({
+    error: response.error,
     response,
-  };
-  return nextState;
+    params: response.config,
+  });
+
+  if (error) throw error;
+
+  return { ...composeNextState(state, response.data), response };
 }
 
 function handleCallback(state, callback) {

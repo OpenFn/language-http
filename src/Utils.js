@@ -1,5 +1,6 @@
 import FormData from 'form-data';
 import { isEmpty } from 'lodash/fp';
+import safeStringify from 'fast-safe-stringify';
 
 export function setUrl(configuration, path) {
   if (configuration && configuration.baseUrl)
@@ -20,14 +21,21 @@ export function setAuth(configuration, manualAuth) {
 
 export function assembleError({ response, error, params }) {
   if (response) {
-    const customCodes = params.options && params.options.successCodes;
-    if ((customCodes || [200, 201, 202]).indexOf(response.statusCode) > -1)
+    const customCodes = params?.options?.successCodes;
+    const status = response?.status || response?.statusCode;
+
+    if ((customCodes || [200, 201, 202]).indexOf(status) > -1) {
       return false;
+    }
   }
+
   if (error) return error;
-  return new Error(
-    `Server responded with:  \n${JSON.stringify(response, null, 2)}`
-  );
+
+  // NOTE: we provide a smaller error output here for readability.
+  // Power users can still access the http functions or axios for debugging.
+  delete response.request;
+  delete response.connection;
+  return new Error(safeStringify(response, null, 2));
 }
 
 export function tryJson(data) {

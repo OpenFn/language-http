@@ -176,11 +176,7 @@ describe('get()', () => {
       });
     });
 
-    testServer.get('/api/badEndpoint').reply(400, function (url, body) {
-      return new Promise((resolve, reject) => {
-        resolve({ url, id: 3 });
-      });
-    });
+    testServer.get('/api/badEndpoint').times(2).reply(400);
   });
 
   it('prepares nextState properly', () => {
@@ -397,20 +393,35 @@ describe('get()', () => {
     expect(finalState.data.body.id).to.eql(3);
   });
 
-  it('throws an error for a non-2XX response', async () => {
+  it('allows successCodes to be specified via options', async () => {
     const state = {
       configuration: {},
       data: {},
     };
 
     const finalState = await execute(
-      get('https://www.example.com/api/badEndpoint', {}, state => {
-        return state;
+      get('https://www.example.com/api/badEndpoint', {
+        options: { successCodes: [400] },
       })
     )(state);
 
-    expect(finalState.data.body.id).to.eql(3);
+    expect(finalState.response.status).to.eql(400);
   });
+});
+
+it('throws an error for a non-2XX response', async () => {
+  const state = {
+    configuration: {},
+    data: {},
+  };
+
+  const error = await execute(get('https://www.example.com/api/badEndpoint'))(
+    state
+  ).catch(error => {
+    return JSON.parse(error.message);
+  });
+
+  expect(error.status).to.eql(400);
 });
 
 describe('post', () => {
