@@ -63,74 +63,6 @@ describe('The execute() function', () => {
 
 const testServer = nock('https://www.example.com');
 
-describe('The get() function', () => {
-  before(() => {
-    testServer.get('/api/fake').times(4).reply(200, {
-      httpStatus: 'OK',
-      message: 'the response',
-    });
-  });
-
-  it('prepares nextState properly', () => {
-    let state = {
-      configuration: {
-        username: 'hello',
-        password: 'there',
-        baseUrl: 'https://www.example.com',
-      },
-      data: {
-        triggering: 'event',
-      },
-    };
-
-    return execute(
-      alterState(state => {
-        state.counter = 1;
-        return state;
-      }),
-      get('/api/fake', {}),
-      alterState(state => {
-        state.counter = 2;
-        return state;
-      })
-    )(state).then(nextState => {
-      const { data, references, counter } = nextState;
-      expect(data.body).to.eql({ httpStatus: 'OK', message: 'the response' });
-      expect(references).to.eql([{ triggering: 'event' }]);
-      expect(counter).to.eql(2);
-    });
-  });
-
-  it('works without a baseUrl', () => {
-    let state = {
-      configuration: {
-        username: 'hello',
-        password: 'there',
-      },
-      data: { triggering: 'event' },
-    };
-    return stdGet(state);
-  });
-
-  it('works with an empty set of credentials', () => {
-    let state = {
-      configuration: {},
-      data: { triggering: 'event' },
-    };
-    return stdGet(state);
-  });
-
-  it('works with no credentials (null)', () => {
-    let state = {
-      configuration: null,
-      data: {
-        triggering: 'event',
-      },
-    };
-    return stdGet(state);
-  });
-});
-
 describe('The client', () => {
   before(() => {
     testServer.get('/api/fake').reply(200, {
@@ -193,8 +125,13 @@ describe('The client', () => {
   });
 });
 
-describe('get', () => {
+describe('get()', () => {
   before(() => {
+    testServer.get('/api/fake').times(4).reply(200, {
+      httpStatus: 'OK',
+      message: 'the response',
+    });
+
     testServer
       .get('/api/fake')
       .times(3)
@@ -238,6 +175,65 @@ describe('get', () => {
         resolve({ url, id: 3 });
       });
     });
+  });
+
+  it('prepares nextState properly', () => {
+    let state = {
+      configuration: {
+        username: 'hello',
+        password: 'there',
+        baseUrl: 'https://www.example.com',
+      },
+      data: {
+        triggering: 'event',
+      },
+    };
+
+    return execute(
+      alterState(state => {
+        state.counter = 1;
+        return state;
+      }),
+      get('/api/fake', {}),
+      alterState(state => {
+        state.counter = 2;
+        return state;
+      })
+    )(state).then(nextState => {
+      const { data, references, counter } = nextState;
+      expect(data.body).to.eql({ httpStatus: 'OK', message: 'the response' });
+      expect(references).to.eql([{ triggering: 'event' }]);
+      expect(counter).to.eql(2);
+    });
+  });
+
+  it('works without a baseUrl', () => {
+    let state = {
+      configuration: {
+        username: 'hello',
+        password: 'there',
+      },
+      data: { triggering: 'event' },
+    };
+    return stdGet(state);
+  });
+
+  it('works with an empty set of credentials', () => {
+    let state = {
+      configuration: {},
+      data: { triggering: 'event' },
+    };
+    return stdGet(state);
+  });
+
+  it('works with no credentials (null)', () => {
+    let state = {
+      configuration: null,
+      data: {
+        triggering: 'event',
+      },
+    };
+    return stdGet(state);
   });
 
   it('accepts headers', async () => {
