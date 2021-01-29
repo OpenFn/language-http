@@ -93,6 +93,9 @@ axios.interceptors.response.use(function (response) {
 });
 
 function handleResponse(state, response, callback) {
+  const error = assembleError({ error: response.error, response, params });
+  error && reject(error);
+
   const nextState = {
     ...composeNextState(state, response.data),
     response,
