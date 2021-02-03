@@ -45,18 +45,17 @@ export function execute(...operations) {
   };
 }
 
-// axios interceptors
 var Cookie = tough.Cookie;
 var cookiejar = new tough.CookieJar();
 
-axios.interceptors.request.use(function (config) {
-  cookiejar?.getCookies(config.url, function (err, cookies) {
+axios.interceptors.request.use(config => {
+  cookiejar?.getCookies(config.url, (err, cookies) => {
     config.headers.cookie = cookies?.join('; ');
   });
   return config;
 });
 
-axios.interceptors.response.use(function (response) {
+function handleCookies(response) {
   let cookies;
   let keepCookies = [];
   response = {
@@ -69,7 +68,7 @@ axios.interceptors.response.use(function (response) {
       cookies = response.headers['set-cookie']?.map(Cookie.parse);
     else cookies = [Cookie.parse(response.headers['set-cookie'])];
 
-    response.headers['set-cookie']?.forEach(function (c) {
+    response.headers['set-cookie']?.forEach(c => {
       cookiejar.setCookie(
         Cookie.parse(c),
         response.config.url,
@@ -81,7 +80,9 @@ axios.interceptors.response.use(function (response) {
       );
     });
   }
+  console.log('before', response.data);
   const resData = tryJson(response.data);
+  console.log('after', resData);
   return {
     ...response,
     data: {
@@ -90,7 +91,7 @@ axios.interceptors.response.use(function (response) {
       __headers: response.headers,
     },
   };
-});
+}
 
 function handleResponse(state, response) {
   const error = assembleError({
@@ -100,6 +101,8 @@ function handleResponse(state, response) {
   });
 
   if (error) throw error;
+
+  response = handleCookies(response);
 
   return { ...composeNextState(state, response.data), response };
 }
@@ -151,6 +154,12 @@ export function get(path, params, callback) {
 
 /**
  * Make a POST request
+ * @public
+ * @public
+ * @public
+ * @public
+ * @public
+ * @public
  * @public
  * @example
  *  post("/myendpoint", {

@@ -40,6 +40,7 @@ export function assembleError({ response, error, params }) {
 
 export function tryJson(data) {
   try {
+    console.log('before trying to parse:', data);
     return JSON.parse(data);
   } catch (e) {
     return { body: data };
