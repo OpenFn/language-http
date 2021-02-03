@@ -39,12 +39,14 @@ export function assembleError({ response, error, params }) {
 }
 
 export function tryJson(data) {
-  try {
-    console.log('before trying to parse:', data);
-    return JSON.parse(data);
-  } catch (e) {
-    return { body: data };
+  if (typeof data === 'string') {
+    try {
+      return JSON.parse(data);
+    } catch (e) {
+      return { body: data };
+    }
   }
+  return data;
 }
 
 export function mapToAxiosConfig(requestConfig) {

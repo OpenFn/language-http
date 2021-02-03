@@ -80,9 +80,9 @@ function handleCookies(response) {
       );
     });
   }
-  console.log('before', response.data);
+
   const resData = tryJson(response.data);
-  console.log('after', resData);
+
   return {
     ...response,
     data: {
