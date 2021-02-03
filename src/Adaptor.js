@@ -45,8 +45,8 @@ export function execute(...operations) {
   };
 }
 
-var Cookie = tough.Cookie;
 var cookiejar = new tough.CookieJar();
+var Cookie = tough.Cookie;
 
 axios.interceptors.request.use(config => {
   cookiejar?.getCookies(config.url, (err, cookies) => {
@@ -95,22 +95,18 @@ function handleResponse(state, response) {
 
   if (error) throw error;
 
-  const backCompatibleResponse = {
+  const compatibleResp = {
     ...response,
     httpStatus: response.status,
     message: response.statusText,
+    data: tryJson(response.data),
   };
 
-  const standardDataResponse = {
-    ...backCompatibleResponse,
-    data: tryJson(backCompatibleResponse.data),
-  };
-
-  const responseWithCookies = handleCookies(standardDataResponse);
+  const respWithCookies = handleCookies(compatibleResp);
 
   return {
-    ...composeNextState(state, responseWithCookies.data),
-    response: responseWithCookies,
+    ...composeNextState(state, respWithCookies.data),
+    response: respWithCookies,
   };
 }
 
