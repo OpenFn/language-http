@@ -39,7 +39,9 @@ export function assembleError({ response, error, params }) {
 }
 
 export function tryJson(data) {
-  if (typeof data === 'string') {
+  if (Array.isArray(data)) {
+    return { body: data };
+  } else if (typeof data === 'string') {
     try {
       return JSON.parse(data);
     } catch (e) {
@@ -70,6 +72,13 @@ export function mapToAxiosConfig(requestConfig) {
     headers = { ...headers, ...formHeaders };
   }
 
+  if (requestConfig?.json) {
+    headers = { ...headers, 'Content-type': 'application/json' };
+    if (typeof requestConfig?.json === 'object') {
+      requestConfig = { ...requestConfig, body: requestConfig?.json };
+    }
+  }
+
   return {
     ...requestConfig,
     url: requestConfig?.url ?? requestConfig?.uri,
@@ -93,7 +102,7 @@ export function mapToAxiosConfig(requestConfig) {
     // withCredentials,
     // adapter,
     auth: requestConfig?.auth ?? requestConfig?.authentication,
-    responseType: requestConfig?.responseType ?? requestConfig?.json,
+    responseType: requestConfig?.responseType ?? 'json',
     responseEncoding:
       requestConfig?.responseEncoding ?? requestConfig?.encoding,
     // xsrfCookieName,

@@ -2,13 +2,15 @@ import Adaptor from '../src';
 import { expect } from 'chai';
 import nock from 'nock';
 
-const { execute, get, post, put, patch, del, alterState, request } = Adaptor;
+const { execute, get, post, put, patch, del, alterState } = Adaptor;
 
 function stdGet(state) {
   return execute(get('https://www.example.com/api/fake', {}))(state).then(
     nextState => {
       const { data, references } = nextState;
-      expect(data.body).to.eql({ httpStatus: 'OK', message: 'the response' });
+      expect(data).to.haveOwnProperty('httpStatus', 'OK');
+      expect(data).to.haveOwnProperty('message', 'the response');
+
       expect(references).to.eql([{ triggering: 'event' }]);
     }
   );
@@ -18,7 +20,7 @@ function clientReq(method, state) {
   return execute(method('https://www.example.com/api/fake', {}))(state).then(
     nextState => {
       const { data, references } = nextState;
-      expect(data.body).to.eql({ httpStatus: 'OK', message: 'the response' });
+      expect(data).to.eql({ httpStatus: 'OK', message: 'the response' });
       expect(references).to.eql([{ a: 1 }]);
     }
   );
@@ -133,15 +135,17 @@ describe('get()', () => {
     });
 
     testServer
-      .get('/api/fake')
+      .get('/api/showMeMyHeaders')
       .times(3)
       .reply(200, function (url, body) {
         return [url, this.req.headers];
       });
 
-    testServer.get('/api/fake?id=1').reply(200, function (url, body) {
-      return [url, this.req.headers];
-    });
+    testServer
+      .get('/api/showMeMyHeaders?id=1')
+      .reply(200, function (url, body) {
+        return [url, this.req.headers];
+      });
 
     testServer
       .get('/api/fake-endpoint')
@@ -204,7 +208,8 @@ describe('get()', () => {
       })
     )(state).then(nextState => {
       const { data, references, counter } = nextState;
-      expect(data.body).to.eql({ httpStatus: 'OK', message: 'the response' });
+      expect(data).to.haveOwnProperty('httpStatus', 'OK');
+      expect(data).to.haveOwnProperty('message', 'the response');
       expect(references).to.eql([{ triggering: 'event' }]);
       expect(counter).to.eql(2);
     });
@@ -249,12 +254,12 @@ describe('get()', () => {
     };
 
     const finalState = await execute(
-      get('https://www.example.com/api/fake', {
+      get('https://www.example.com/api/showMeMyHeaders', {
         headers: { 'x-openfn': 'testing' },
       })
     )(state);
 
-    expect(finalState.data.body[0]).to.eql('/api/fake');
+    expect(finalState.data.body[0]).to.eql('/api/showMeMyHeaders');
 
     expect(finalState.data.body[1]).to.haveOwnProperty('x-openfn', 'testing');
 
@@ -280,17 +285,14 @@ describe('get()', () => {
       data: { triggering: 'event' },
     };
 
-    const finalState = await execute(get('https://www.example.com/api/fake'))(
-      state
-    );
-
-    expect(finalState.data.body[0]).to.eql('/api/fake');
-
+    const finalState = await execute(
+      get('https://www.example.com/api/showMeMyHeaders')
+    )(state);
+    expect(finalState.data.body[0]).to.eql('/api/showMeMyHeaders');
     expect(finalState.data.body[1]).to.haveOwnProperty(
       'authorization',
       'Basic aGVsbG86dGhlcmU='
     );
-
     expect(finalState.data.body[1]).to.haveOwnProperty(
       'host',
       'www.example.com'
@@ -304,10 +306,10 @@ describe('get()', () => {
     };
 
     const finalState = await execute(
-      get('https://www.example.com/api/fake', { gzip: true })
+      get('https://www.example.com/api/showMeMyHeaders', { gzip: true })
     )(state);
 
-    expect(finalState.data.body[0]).to.eql('/api/fake');
+    expect(finalState.data.body[0]).to.eql('/api/showMeMyHeaders');
 
     expect(finalState.data.body[1]).to.haveOwnProperty(
       'accept-encoding',
@@ -327,10 +329,10 @@ describe('get()', () => {
     };
 
     const finalState = await execute(
-      get('https://www.example.com/api/fake', { query: { id: 1 } })
+      get('https://www.example.com/api/showMeMyHeaders', { query: { id: 1 } })
     )(state);
 
-    expect(finalState.data.body[0]).to.eql('/api/fake?id=1');
+    expect(finalState.data.body[0]).to.eql('/api/showMeMyHeaders?id=1');
 
     expect(finalState.data.body[1]).to.haveOwnProperty(
       'host',
@@ -349,7 +351,7 @@ describe('get()', () => {
         headers: { followAllRedirects: true },
       })
     )(state);
-    expect(finalState.data.body.url).to.eql('/api/fake-endpoint-3');
+    expect(finalState.data.url).to.eql('/api/fake-endpoint-3');
   });
 
   it('can keep and reuse cookies', async () => {
@@ -379,7 +381,7 @@ describe('get()', () => {
       })
     )(state);
 
-    expect(finalState.data.body.id).to.eql(3);
+    expect(finalState.data.id).to.eql(3);
   });
 
   it('returns a promise that contains nextState', async () => {
@@ -391,7 +393,7 @@ describe('get()', () => {
     const finalState = await execute(
       get('https://www.example.com/api/fake-promise', {})
     )(state).then(state => state);
-    expect(finalState.data.body.id).to.eql(3);
+    expect(finalState.data.id).to.eql(3);
   });
 
   it('allows successCodes to be specified via options', async () => {
@@ -455,7 +457,7 @@ describe('post', () => {
     const finalState = await execute(
       post('https://www.example.com/api/fake-json', { body: state.data })
     )(state);
-    expect(finalState.data.body).to.eql({ name: 'test', age: 24 });
+    expect(finalState.data).to.eql({ name: 'test', age: 24 });
   });
 
   it('can set data via Form param on the request body', async () => {
@@ -532,7 +534,7 @@ describe('post', () => {
       })
     )(state);
 
-    expect(finalState.data.body.statusCode).to.eq(302);
+    expect(finalState.data.statusCode).to.eq(302);
   });
 });
 
@@ -554,8 +556,8 @@ describe('put', () => {
       })
     )(state);
 
-    expect(finalState.data.body.statusCode).to.eql(200);
-    expect(finalState.data.body.body).to.eql({ name: 'New name' });
+    expect(finalState.data.statusCode).to.eql(200);
+    expect(finalState.data.body).to.eql({ name: 'New name' });
   });
 });
 
@@ -577,8 +579,8 @@ describe('patch', () => {
       })
     )(state);
 
-    expect(finalState.data.body.statusCode).to.eql(200);
-    expect(finalState.data.body.body).to.eql({ id: 6, name: 'New name' });
+    expect(finalState.data.statusCode).to.eql(200);
+    expect(finalState.data.body).to.eql({ id: 6, name: 'New name' });
   });
 });
 
@@ -602,10 +604,7 @@ describe('delete', () => {
       })
     )(state);
 
-    // TODO: fix this interface, if `Utils.tryJson` cleanly converts the
-    // response body, it won't be under the `body` key. See `put()` example
-    // above where we have to look inside `data.body.body`.
-    expect(finalState.data.body).to.eql({});
+    expect(finalState.data).to.eql({});
   });
 });
 
@@ -624,15 +623,13 @@ describe('the old request operation', () => {
       data: { a: 1 },
     };
     const finalState = await execute(
-      request({
-        method: 'POST',
-        url: 'https://www.example.com/api/oldEndpoint',
+      post('https://www.example.com/api/oldEndpoint', {
         json: { a: 1 },
         qs: { hi: 'there' },
       })
     )(state);
 
-    expect(finalState.body).to.eql({ a: 1 });
+    expect(finalState.data).to.eql({ a: 1 });
   });
 });
 
@@ -664,7 +661,7 @@ describe('The `agentOptions` param', () => {
         agentOptions: state => state.httpsOptions,
       })
     )(state);
-    expect(finalState.data.body).to.eql({ a: 1 });
+    expect(finalState.data).to.eql({ a: 1 });
     expect(finalState.response.config.httpsAgent.options.ca).to.eql('abc123');
   });
 
@@ -684,7 +681,7 @@ describe('The `agentOptions` param', () => {
         agentOptions: { ca: state.configuration.privateKey },
       })
     )(state);
-    expect(finalState.data.body).to.eql({ a: 1 });
+    expect(finalState.data).to.eql({ a: 1 });
     expect(finalState.response.config.httpsAgent.options.ca).to.eql('abc123');
   });
 
@@ -707,7 +704,7 @@ describe('The `agentOptions` param', () => {
         return { body: state.data, agentOptions: state.httpsOptions };
       })
     )(state);
-    expect(finalState.data.body).to.eql({ a: 1 });
+    expect(finalState.data).to.eql({ a: 1 });
     expect(finalState.response.config.httpsAgent.options.ca).to.eql('abc123');
   });
 });

@@ -56,14 +56,9 @@ axios.interceptors.request.use(config => {
 });
 
 function handleCookies(response) {
-  let cookies;
-  let keepCookies = [];
-  response = {
-    ...response,
-    httpStatus: response.status,
-    message: response.statusText,
-  };
   if (response.headers['set-cookie']) {
+    let cookies;
+    let keepCookies = [];
     if (response.headers['set-cookie'] instanceof Array)
       cookies = response.headers['set-cookie']?.map(Cookie.parse);
     else cookies = [Cookie.parse(response.headers['set-cookie'])];
@@ -79,18 +74,16 @@ function handleCookies(response) {
         }
       );
     });
+    return {
+      ...response,
+      data: {
+        ...response.data,
+        __cookie: keepCookies?.length === 1 ? keepCookies[0] : keepCookies,
+        __headers: response.headers,
+      },
+    };
   }
-
-  const resData = tryJson(response.data);
-
-  return {
-    ...response,
-    data: {
-      ...resData,
-      __cookie: keepCookies?.length === 1 ? keepCookies[0] : keepCookies,
-      __headers: response.headers,
-    },
-  };
+  return response;
 }
 
 function handleResponse(state, response) {
@@ -102,9 +95,23 @@ function handleResponse(state, response) {
 
   if (error) throw error;
 
-  response = handleCookies(response);
+  const backCompatibleResponse = {
+    ...response,
+    httpStatus: response.status,
+    message: response.statusText,
+  };
 
-  return { ...composeNextState(state, response.data), response };
+  const standardDataResponse = {
+    ...backCompatibleResponse,
+    data: tryJson(backCompatibleResponse.data),
+  };
+
+  const responseWithCookies = handleCookies(standardDataResponse);
+
+  return {
+    ...composeNextState(state, responseWithCookies.data),
+    response: responseWithCookies,
+  };
 }
 
 function handleCallback(state, callback) {
@@ -154,12 +161,6 @@ export function get(path, params, callback) {
 
 /**
  * Make a POST request
- * @public
- * @public
- * @public
- * @public
- * @public
- * @public
  * @public
  * @example
  *  post("/myendpoint", {
