@@ -56,24 +56,28 @@ axios.interceptors.request.use(config => {
 });
 
 function handleCookies(response) {
-  if (response.headers['set-cookie']) {
+  if (response.config?.keepCookie) {
     let cookies;
     let keepCookies = [];
-    if (response.headers['set-cookie'] instanceof Array)
-      cookies = response.headers['set-cookie']?.map(Cookie.parse);
-    else cookies = [Cookie.parse(response.headers['set-cookie'])];
 
-    response.headers['set-cookie']?.forEach(c => {
-      cookiejar.setCookie(
-        Cookie.parse(c),
-        response.config.url,
-        function (err, cookie) {
-          if (response.config?.keepCookie) {
+    if (response.headers['set-cookie']) {
+      if (response.headers['set-cookie'] instanceof Array) {
+        cookies = response.headers['set-cookie']?.map(Cookie.parse);
+      } else {
+        cookies = [Cookie.parse(response.headers['set-cookie'])];
+      }
+
+      response.headers['set-cookie']?.forEach(c => {
+        cookiejar.setCookie(
+          Cookie.parse(c),
+          response.config.url,
+          (err, cookie) => {
             keepCookies?.push(cookie?.cookieString());
           }
-        }
-      );
-    });
+        );
+      });
+    }
+
     return {
       ...response,
       data: {
@@ -83,6 +87,7 @@ function handleCookies(response) {
       },
     };
   }
+
   return response;
 }
 
