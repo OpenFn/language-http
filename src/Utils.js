@@ -79,7 +79,7 @@ export function mapToAxiosConfig(requestConfig) {
     }
   }
 
-  return {
+  const finalConfig = {
     ...requestConfig,
     url: requestConfig?.url ?? requestConfig?.uri,
     // https:
@@ -111,7 +111,8 @@ export function mapToAxiosConfig(requestConfig) {
     // onDownloadProgress,
     // maxContentLength,
     // maxBodyLength,
-    validateStatus: function (status) {
+    validateStatus: status => {
+      console.log('Status received by axios', status);
       return (
         (status >= 200 && status < 300) ||
         requestConfig?.options?.successCodes?.includes(status)
@@ -127,4 +128,6 @@ export function mapToAxiosConfig(requestConfig) {
     // cancelToken,
     // decompress,
   };
+
+  return finalConfig;
 }

@@ -56,32 +56,29 @@ axios.interceptors.request.use(config => {
 });
 
 function handleCookies(response) {
-  if (response.config?.keepCookie) {
+  const { config, data, headers } = response;
+  if (config.keepCookie) {
     let cookies;
     let keepCookies = [];
 
-    if (response.headers['set-cookie']) {
-      if (response.headers['set-cookie'] instanceof Array) {
-        cookies = response.headers['set-cookie']?.map(Cookie.parse);
+    if (headers['set-cookie']) {
+      if (headers['set-cookie'] instanceof Array) {
+        cookies = headers['set-cookie']?.map(Cookie.parse);
       } else {
-        cookies = [Cookie.parse(response.headers['set-cookie'])];
+        cookies = [Cookie.parse(headers['set-cookie'])];
       }
 
-      response.headers['set-cookie']?.forEach(c => {
-        cookiejar.setCookie(
-          Cookie.parse(c),
-          response.config.url,
-          (err, cookie) => {
-            keepCookies?.push(cookie?.cookieString());
-          }
-        );
+      headers['set-cookie']?.forEach(c => {
+        cookiejar.setCookie(Cookie.parse(c), config.url, (err, cookie) => {
+          keepCookies?.push(cookie?.cookieString());
+        });
       });
     }
 
     return {
       ...response,
       data: {
-        ...response.data,
+        ...data,
         __cookie: keepCookies?.length === 1 ? keepCookies[0] : keepCookies,
         __headers: response.headers,
       },
