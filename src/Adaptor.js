@@ -89,14 +89,13 @@ function handleCookies(response) {
 }
 
 function handleResponse(state, response) {
-  const error = assembleError({
-    error: response.error,
-    response,
-    params: response.config,
-  });
-
-  if (error) throw error;
-
+  console.log(
+    '✓',
+    response.config.method.toUpperCase(),
+    'request succeeded with',
+    response.status
+  );
+  
   const compatibleResp = {
     ...response,
     httpStatus: response.status,

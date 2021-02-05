@@ -2,7 +2,7 @@ import Adaptor from '../src';
 import { expect } from 'chai';
 import nock from 'nock';
 
-const { execute, get, post, put, patch, del, alterState } = Adaptor;
+const { execute, get, post, put, patch, del, alterState, request } = Adaptor;
 
 function stdGet(state) {
   return execute(get('https://www.example.com/api/fake', {}))(state).then(
@@ -419,11 +419,9 @@ describe('get()', () => {
 
     const error = await execute(get('https://www.example.com/api/crashDummy'))(
       state
-    ).catch(error => {
-      return JSON.parse(error.message);
-    });
+    ).catch(error => error);
 
-    expect(error.status).to.eql(500);
+    expect(error.response.status).to.eql(500);
   });
 });
 
@@ -623,13 +621,15 @@ describe('the old request operation', () => {
       data: { a: 1 },
     };
     const finalState = await execute(
-      post('https://www.example.com/api/oldEndpoint', {
+      request({
+        method: 'post',
+        url: 'https://www.example.com/api/oldEndpoint',
         json: { a: 1 },
         qs: { hi: 'there' },
       })
     )(state);
 
-    expect(finalState.data).to.eql({ a: 1 });
+    expect(finalState).to.eql({ a: 1 });
   });
 });
 
@@ -692,7 +692,7 @@ describe('The `agentOptions` param', () => {
         prublicKey: 'something@mamadou.org',
         privateKey: 'abc123',
       },
-      data: { a: 1 },
+      data: { a: 2 },
     };
 
     const finalState = await execute(
@@ -700,11 +700,13 @@ describe('The `agentOptions` param', () => {
         state.httpsOptions = { ca: state.configuration.privateKey };
         return state;
       }),
-      post('https://www.example.com/api/sslCertCheck', state => {
-        return { body: state.data, agentOptions: state.httpsOptions };
+      post('https://www.example.com/api/sslCertCheck', {
+        body: state => state.data,
+        agentOptions: state => state.httpsOptions,
       })
     )(state);
-    expect(finalState.data).to.eql({ a: 1 });
+
+    expect(finalState.data).to.eql({ a: 2 });
     expect(finalState.response.config.httpsAgent.options.ca).to.eql('abc123');
   });
 });

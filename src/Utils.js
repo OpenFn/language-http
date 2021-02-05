@@ -112,11 +112,9 @@ export function mapToAxiosConfig(requestConfig) {
     // maxContentLength,
     // maxBodyLength,
     validateStatus: status => {
-      console.log('Status received by axios', status);
-      return (
-        (status >= 200 && status < 300) ||
-        requestConfig?.options?.successCodes?.includes(status)
-      );
+      const customCodes = requestConfig?.options?.successCodes;
+      if (customCodes) return customCodes.includes(status);
+      return status >= 200 && status < 300;
     },
     maxRedirects:
       requestConfig?.maxRedirects ??
@@ -128,6 +126,5 @@ export function mapToAxiosConfig(requestConfig) {
     // cancelToken,
     // decompress,
   };
-
   return finalConfig;
 }
