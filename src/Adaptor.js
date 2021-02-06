@@ -75,10 +75,12 @@ function handleCookies(response) {
       });
     }
 
+    const extendableData = Array.isArray(data) ? { body: data } : data;
+
     return {
       ...response,
       data: {
-        ...data,
+        ...extendableData,
         __cookie: keepCookies?.length === 1 ? keepCookies[0] : keepCookies,
         __headers: response.headers,
       },
@@ -90,12 +92,12 @@ function handleCookies(response) {
 
 function handleResponse(state, response) {
   console.log(
-    '✓',
     response.config.method.toUpperCase(),
     'request succeeded with',
-    response.status
+    response.status,
+    '✓'
   );
-  
+
   const compatibleResp = {
     ...response,
     httpStatus: response.status,

@@ -259,19 +259,16 @@ describe('get()', () => {
       })
     )(state);
 
-    expect(finalState.data.body[0]).to.eql('/api/showMeMyHeaders');
+    expect(finalState.data[0]).to.eql('/api/showMeMyHeaders');
 
-    expect(finalState.data.body[1]).to.haveOwnProperty('x-openfn', 'testing');
+    expect(finalState.data[1]).to.haveOwnProperty('x-openfn', 'testing');
 
-    expect(finalState.data.body[1]).to.haveOwnProperty(
+    expect(finalState.data[1]).to.haveOwnProperty(
       'authorization',
       'Basic aGVsbG86dGhlcmU='
     );
 
-    expect(finalState.data.body[1]).to.haveOwnProperty(
-      'host',
-      'www.example.com'
-    );
+    expect(finalState.data[1]).to.haveOwnProperty('host', 'www.example.com');
 
     expect(finalState.references).to.eql([{ triggering: 'event' }]);
   });
@@ -288,15 +285,12 @@ describe('get()', () => {
     const finalState = await execute(
       get('https://www.example.com/api/showMeMyHeaders')
     )(state);
-    expect(finalState.data.body[0]).to.eql('/api/showMeMyHeaders');
-    expect(finalState.data.body[1]).to.haveOwnProperty(
+    expect(finalState.data[0]).to.eql('/api/showMeMyHeaders');
+    expect(finalState.data[1]).to.haveOwnProperty(
       'authorization',
       'Basic aGVsbG86dGhlcmU='
     );
-    expect(finalState.data.body[1]).to.haveOwnProperty(
-      'host',
-      'www.example.com'
-    );
+    expect(finalState.data[1]).to.haveOwnProperty('host', 'www.example.com');
   });
 
   it('can enable gzip', async () => {
@@ -309,17 +303,14 @@ describe('get()', () => {
       get('https://www.example.com/api/showMeMyHeaders', { gzip: true })
     )(state);
 
-    expect(finalState.data.body[0]).to.eql('/api/showMeMyHeaders');
+    expect(finalState.data[0]).to.eql('/api/showMeMyHeaders');
 
-    expect(finalState.data.body[1]).to.haveOwnProperty(
+    expect(finalState.data[1]).to.haveOwnProperty(
       'accept-encoding',
       'gzip, deflate'
     );
 
-    expect(finalState.data.body[1]).to.haveOwnProperty(
-      'host',
-      'www.example.com'
-    );
+    expect(finalState.data[1]).to.haveOwnProperty('host', 'www.example.com');
   });
 
   it('allows query strings to be set', async () => {
@@ -332,12 +323,9 @@ describe('get()', () => {
       get('https://www.example.com/api/showMeMyHeaders', { query: { id: 1 } })
     )(state);
 
-    expect(finalState.data.body[0]).to.eql('/api/showMeMyHeaders?id=1');
+    expect(finalState.data[0]).to.eql('/api/showMeMyHeaders?id=1');
 
-    expect(finalState.data.body[1]).to.haveOwnProperty(
-      'host',
-      'www.example.com'
-    );
+    expect(finalState.data[1]).to.haveOwnProperty('host', 'www.example.com');
   });
 
   it('can follow redirects', async () => {

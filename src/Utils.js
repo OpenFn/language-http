@@ -39,9 +39,7 @@ export function assembleError({ response, error, params }) {
 }
 
 export function tryJson(data) {
-  if (Array.isArray(data)) {
-    return { body: data };
-  } else if (typeof data === 'string') {
+  if (typeof data === 'string') {
     try {
       return JSON.parse(data);
     } catch (e) {
