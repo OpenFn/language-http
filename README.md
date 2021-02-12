@@ -4,8 +4,6 @@ Language Pack for building expressions and operations to make HTTP calls.
 
 ## Documentation
 
-## Fetch
-
 #### sample configuration
 
 ```js
@@ -17,58 +15,29 @@ Language Pack for building expressions and operations to make HTTP calls.
 }
 ```
 
-#### sample fetch expression
+### Get data
+This helper function allows the use of a get method to fetch data. You can specify a query string for filter.
 
 ```js
-fetch({
-  getEndpoint: 'api/v1/forms/data/wide/json/mod_coach',
-  query: function (state) {
-    return { date: dataValue('_json[(@.length-1)].SubmissionDate')(state) };
+get(
+  '/myendpoint',
+  {
+    query: { foo: 'bar', a: 1 },
+    headers: { 'content-type': 'application/json' },
+    authentication: { username: 'taylor', password: 'somethingsecret' },
   },
-  postUrl: 'http://localhost:4000/inbox/8ad63a29-5c25-4d8d-ba2c-fe6274dcfbab',
-});
+  state => {
+    return state;
+  }
+);
 ```
 
-#### sample custom GET and then POST
+### Post existing data
+Send some data to an existing endpoint.
 
 ```js
-get('forms/data/wide/json/form_id', {
-  query: function (state) {
-    return { date: state.lastSubmissionDate || 'Aug 29, 2016 4:44:26 PM' };
-  },
-  callback: function (state) {
-    // Pick submissions out in order to avoid `post` overwriting `response`.
-    var submissions = state.response.body;
-    // return submissions
-    return submissions
-      .reduce(function (acc, item) {
-        // tag submissions as part of the "form_id" form
-        item.formId = 'form_id';
-        return acc.then(
-          post('https://www.openfn.org/inbox/very-very-secret', { body: item })
-        );
-      }, Promise.resolve(state))
-      .then(function (state) {
-        if (submissions.length) {
-          state.lastSubmissionDate =
-            submissions[submissions.length - 1].SubmissionDate;
-        }
-        return state;
-      })
-      .then(function (state) {
-        delete state.response;
-        return state;
-      });
-  },
-});
-```
-
-### Sample post with existing data
-
-```js
-postData({
-  url: 'INSERT_URL_HERE',
-  body: function (state) {
+post('/endpoint', {
+  body: state => {
     return {
       field_1: 'some_data',
       field_2: 'some_more_data',
@@ -82,6 +51,70 @@ postData({
 });
 ```
 
+### Update existing data with PUT or PATCH
+
+```js
+put(
+  '/myendpoint',
+  {
+    body: { firstname: 'taylor', lastname: 'downs' },
+    headers: { 'content-type': 'application/json' },
+    authentication: { username: 'user', password: 'pass' },
+  },
+  state => {
+    return state;
+  }
+);
+```
+
+```js
+patch(
+  '/myendpoint',
+  {
+    body: { firstname: 'taylor', lastname: 'downs' },
+    headers: { 'content-type': 'application/json' },
+    authentication: { username: 'user', password: 'pass' },
+  },
+  state => {
+    return state;
+  }
+);
+```
+
+### Delete data
+
+```js
+del(
+  '/myendpoint',
+  {
+    query: { id: 'someId' },
+    headers: { 'content-type': 'application/json' },
+    authentication: { username: 'user', password: 'pass' },
+  },
+  state => {
+    return state;
+  }
+);
+```
+
+### Parse XML
+
+This function allows you to parse some xml data. A callback function can be use to store in a table.
+
+```js
+parseXML(body, function ($) {
+  return $('table[class=your_table]').parsetable(true, true, true);
+});
+```
+
+### Parse CSV
+
+```js
+parseCSV('/home/user/someData.csv', {
+  quoteChar: '"',
+  header: false,
+});
+```
 ### Sample parse local CSV file
 
 ```js
@@ -104,3 +137,5 @@ Clone the repo, run `npm install`.
 Run tests using `npm run test` or `npm run test:watch`
 
 Build the project using `make`.
+
+To build the docs for this repo, run `./node_modules/.bin/jsdoc --readme ./README.md ./lib -d docs`.
