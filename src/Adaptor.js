@@ -30,7 +30,7 @@ exports.axios = axios;
  *   create('foo'),
  *   delete('bar')
  * )(state)
- * @function
+ * @constructor
  * @param {Operations} operations - Operations to be performed.
  * @returns {Operation}
  */
@@ -131,7 +131,7 @@ function handleCallback(state, callback) {
  *      return state;
  *    }
  *  )
- * @function
+ * @constructor
  * @param {string} path - Path to resource
  * @param {object} params - Query, Headers and Authentication parameters
  * @param {function} callback - (Optional) Callback function
@@ -171,7 +171,7 @@ export function get(path, params, callback) {
  *      return state;
  *    }
  *  )
- * @function
+ * @constructor
  * @param {string} path - Path to resource
  * @param {object} params - Body, Query, Headers and Authentication parameters
  * @param {function} callback - (Optional) Callback function
@@ -211,7 +211,7 @@ export function post(path, params, callback) {
  *      return state;
  *    }
  *  )
- * @function
+ * @constructor
  * @param {string} path - Path to resource
  * @param {object} params - Body, Query, Headers and Auth parameters
  * @param {function} callback - (Optional) Callback function
@@ -251,7 +251,7 @@ export function put(path, params, callback) {
  *      return state;
  *    }
  *  )
- * @function
+ * @constructor
  * @param {string} path - Path to resource
  * @param {object} params - Body, Query, Headers and Auth parameters
  * @param {function} callback - (Optional) Callback function
@@ -291,7 +291,7 @@ export function patch(path, params, callback) {
  *      return state;
  *    }
  *  )
- * @function
+ * @constructor
  * @param {string} path - Path to resource
  * @param {object} params - Body, Query, Headers and Auth parameters
  * @param {function} callback - (Optional) Callback function
@@ -325,7 +325,7 @@ export function del(path, params, callback) {
  *  parseXML(body, function($){
  *    return $("table[class=your_table]").parsetable(true, true, true);
  *  })
- * @function
+ * @constructor
  * @param {String} body - data string to be parsed
  * @param {function} script - script for extracting data
  * @returns {Operation}
@@ -357,7 +357,7 @@ export function parseXML(body, script) {
  * 	  quoteChar: '"',
  * 	  header: false,
  * 	});
- * @function
+ * @constructor
  * @param {String} target - string or local file with CSV data
  * @param {Object} config - csv-parse config object
  * @returns {Operation}
@@ -399,7 +399,7 @@ export function parseCSV(target, config) {
  * Make a request using the 'request' node module. This module is deprecated.
  * @example
  *  request(params);
- * @function
+ * @constructor
  * @param {object} params - Query, Headers and Authentication parameters
  * @returns {Operation}
  */
