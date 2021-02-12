@@ -36,6 +36,7 @@
     "@babel/preset-env": "^7.9.5",
     "@babel/register": "^7.9.0",
     "chai": "^4.2.0",
+    "jsdoc": "^3.6.6",
     "deep-eql": "^4.0.0",
     "mocha": "^7.1.0",
     "nock": "^13.0.5",
