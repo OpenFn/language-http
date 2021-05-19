@@ -319,7 +319,7 @@ export function del(path, params, callback) {
 }
 
 /**
- * Cheerio parser for XML and HTML
+ * Parse XML with the Cheerio parser
  * @public
  * @example
  *  parseXML(body, function($){

@@ -327,7 +327,7 @@
         "script"
       ],
       "docs": {
-        "description": "Cheerio parser for XML and HTML",
+        "description": "Parse XML with the Cheerio parser",
         "tags": [
           {
             "title": "public",
