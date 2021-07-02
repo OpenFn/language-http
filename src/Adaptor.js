@@ -423,6 +423,7 @@ export function request(params) {
 }
 
 export {
+  fn,
   alterState,
   dataPath,
   dataValue,
