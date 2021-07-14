@@ -113,6 +113,19 @@ function handleResponse(state, response) {
   };
 }
 
+function handleError(error) {
+  console.log('Hello there');
+  let newError = {
+    ...error,
+    response: {
+      ...error.response,
+      config: 'REDACTED',
+    },
+  };
+  console.log(newError);
+  throw newError;
+}
+
 function handleCallback(state, callback) {
   if (callback) return callback(state);
   return state;
@@ -193,6 +206,7 @@ export function post(path, params, callback) {
 
     return http
       .post(config)(state)
+      .catch(error => handleError(error))
       .then(response => handleResponse(state, response))
       .then(nextState => handleCallback(nextState, callback));
   };
