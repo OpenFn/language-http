@@ -23,7 +23,7 @@
     "ast.json"
   ],
   "dependencies": {
-    "@openfn/language-common": "1.4.1",
+    "@openfn/language-common": "1.6.2",
     "cheerio": "^1.0.0-rc.3",
     "cheerio-tableparser": "^1.0.1",
     "csv-parse": "^4.10.1",
