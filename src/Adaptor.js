@@ -423,16 +423,17 @@ export function request(params) {
 }
 
 export {
-  fn,
   alterState,
+  combine,
   dataPath,
   dataValue,
+  dateFns,
   each,
   field,
   fields,
+  fn,
   http,
   lastReferenceValue,
   merge,
   sourceValue,
-  combine,
 } from '@openfn/language-common';
