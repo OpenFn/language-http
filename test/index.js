@@ -1,6 +1,7 @@
 import Adaptor from '../src';
 import { expect } from 'chai';
 import nock from 'nock';
+import { setUrl } from '../src/Utils';
 
 const { execute, get, post, put, patch, del, alterState, request } = Adaptor;
 
@@ -60,6 +61,36 @@ describe('The execute() function', () => {
       })
       .then(done)
       .catch(done);
+  });
+});
+
+describe('setUrl', () => {
+  it('handles no slashes on either baseUrl or path', () => {
+    const configuration = { baseUrl: 'https://www.test.com' };
+    const path = 'users/5';
+
+    expect(setUrl(configuration, path)).to.eql('https://www.test.com/users/5');
+  });
+
+  it('handles a trailing slash on baseUrl and a leading slash on path', () => {
+    const configuration = { baseUrl: 'https://www.test.com/' };
+    const path = '/users/5';
+
+    expect(setUrl(configuration, path)).to.eql('https://www.test.com/users/5');
+  });
+
+  it('handles a trailing slash on baseUrl, no leading slash on path', () => {
+    const configuration = { baseUrl: 'https://www.test.com/' };
+    const path = 'users/5';
+
+    expect(setUrl(configuration, path)).to.eql('https://www.test.com/users/5');
+  });
+
+  it('handles a leading slash on path, nothing on baseUrl', () => {
+    const configuration = { baseUrl: 'https://www.test.com' };
+    const path = '/users/5';
+
+    expect(setUrl(configuration, path)).to.eql('https://www.test.com/users/5');
   });
 });
 
