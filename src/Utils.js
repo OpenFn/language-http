@@ -3,12 +3,12 @@ import { isEmpty } from 'lodash/fp';
 import safeStringify from 'fast-safe-stringify';
 
 export function setUrl(configuration, path) {
-  if (configuration && configuration.baseUrl) {
-    const baseUrl = configuration.baseUrl.endsWith('/')
-      ? configuration.baseUrl
-      : `${configuration.baseUrl}/`;
-    return `${baseUrl}${path}`;
-  } else return path;
+  const baseUrl = configuration?.baseUrl;
+
+  if (baseUrl)
+    return `${baseUrl.replace(/\/$/, '')}/${path.replace(/^\/+/g, '')}`;
+
+  return path;
 }
 
 export function setAuth(configuration, manualAuth) {
