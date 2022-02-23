@@ -16,6 +16,7 @@ Language Pack for building expressions and operations to make HTTP calls.
 ```
 
 ### Get data
+
 This helper function allows the use of a get method to fetch data. You can specify a query string for filter.
 
 ```js
@@ -33,6 +34,7 @@ get(
 ```
 
 ### Post existing data
+
 Send some data to an existing endpoint.
 
 ```js
@@ -115,6 +117,7 @@ parseCSV('/home/user/someData.csv', {
   header: false,
 });
 ```
+
 ### Sample parse local CSV file
 
 ```js
@@ -128,6 +131,22 @@ parseCSV('/home/taylor/PatientsJan2009.csv', {
 });
 ```
 
+## sample getCSV expression
+
+This function is an alternative to the parseCSV function. It fetches a file from a (s)ftp server and parses it into json.
+
+```js
+getCSV('path/to/file.csv', 'utf8', {
+  quote: 'off',
+  delimiter: ';',
+  noheader: true,
+  filter: {
+    type: 'startsWith',
+    key: 'field1',
+    value: 'JO',
+  },
+});
+
 [Docs](docs/index)
 
 ## Development
@@ -139,3 +158,4 @@ Run tests using `npm run test` or `npm run test:watch`
 Build the project using `make`.
 
 To build the docs for this repo, run `./node_modules/.bin/jsdoc --readme ./README.md ./lib -d docs`.
+```

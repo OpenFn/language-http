@@ -18,6 +18,7 @@ import cheerioTableparser from 'cheerio-tableparser';
 import fs from 'fs';
 import parse from 'csv-parse';
 import tough from 'tough-cookie';
+import Client from 'ssh2-sftp-client';
 
 const { axios } = http;
 exports.axios = axios;
@@ -392,6 +393,60 @@ export function parseCSV(target, config) {
         });
       }
     });
+  };
+}
+
+/**
+ * Get a CSV and convert it to JSON
+ * @public
+ * @example
+ * getCSV(
+ *   "/some/path/to_file.csv"
+ * );
+ * @constructor
+ * @param {string} source - Path to resource
+ * @returns {Operation}
+ */
+export function getCSV(source) {
+  return state => {
+    const sftp = new Client();
+
+    return sftp
+      .connect(state.configuration)
+      .then(() => {
+        process.stdout.write('Connected. ✓\n');
+        return sftp.get(source);
+      })
+      .then(stream => {
+        process.stdout.write('Parsing rows to JSON.\n');
+        let results = [];
+        stream.pipe(csv());
+
+        return new Promise((resolve, reject) => {
+          stream
+            .on('readable', jsonObject => {
+              stream.read();
+            })
+            .on('data', data => {
+              results.push(data);
+            })
+            .on('end', () => {
+              resolve(results.join('').split('\r\n'));
+            });
+        }).then(json => {
+          const nextState = composeNextState(state, json);
+          return nextState;
+        });
+      })
+      .then(state => {
+        console.log('Stream finished.');
+        sftp.end();
+        return state;
+      })
+      .catch(e => {
+        sftp.end();
+        throw e;
+      });
   };
 }
 
