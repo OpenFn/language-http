@@ -359,40 +359,52 @@ export function parseXML(body, script) {
  * 	  header: false,
  * 	});
  * @constructor
- * @param {String} target - string or local file with CSV data
+ * @param {String} fileUrl - external or local file with CSV data
  * @param {Object} config - csv-parse config object
  * @returns {Operation}
  */
-export function parseCSV(target, config) {
-  return state => {
-    return new Promise((resolve, reject) => {
-      var csvData = [];
+ export function parseCSV(fileUrl, config) {
+  return async (state) => {
+    const parseExternalFile = async () => {
+      const fileUrl = externalFileUrl;
+      const csvFile = await http.get({ url: fileUrl })(state);
+      let { data } = csvFile;
+      data = data ? data.split("\r\n") : [];
+      const json = data.map((line) => line.split(","));
+      return composeNextState(state, json);
+    };
 
-      try {
-        fs.readFileSync(target);
-        fs.createReadStream(target)
-          .pipe(parse(config))
-          .on('data', csvrow => {
-            console.log(csvrow);
-            csvData.push(csvrow);
-          })
-          .on('end', () => {
-            console.log(csvData);
-            resolve(composeNextState(state, csvData));
+    const parseInternalFile = () => {
+      return new Promise((resolve, reject) => {
+        var csvData = [];
+        const target = localFileUrl;
+        try {
+          fs.readFileSync(target);
+          fs.createReadStream(target)
+            .pipe(parse(config))
+            .on("data", (csvrow) => {
+              csvData.push(csvrow);
+            })
+            .on("end", () => {
+              resolve(composeNextState(state, csvData));
+            });
+        } catch (err) {
+          var csvString;
+          if (typeof target === "string") {
+            csvString = target;
+          } else {
+            csvString = expandReferences(target)(state);
+          }
+          csvData = parse(csvString, config, (err, output) => {
+            resolve(composeNextState(state, output));
           });
-      } catch (err) {
-        var csvString;
-        if (typeof target === 'string') {
-          csvString = target;
-        } else {
-          csvString = expandReferences(target)(state);
         }
-        csvData = parse(csvString, config, (err, output) => {
-          console.log(output);
-          resolve(composeNextState(state, output));
-        });
-      }
-    });
+      });
+    };
+
+    return fileUrl.startsWith("http")
+      ? parseExternalFile()
+      : parseInternalFile();
   };
 }
 
