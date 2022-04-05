@@ -5,10 +5,24 @@ import safeStringify from 'fast-safe-stringify';
 export function setUrl(configuration, path) {
   const baseUrl = configuration?.baseUrl;
 
+  if (isValidHttpUrl(path)) return path;
+
   if (baseUrl)
     return `${baseUrl.replace(/\/$/, '')}/${path.replace(/^\/+/g, '')}`;
 
   return path;
+}
+
+function isValidHttpUrl(string) {
+  let url;
+
+  try {
+    url = new URL(string);
+  } catch (_) {
+    return false;
+  }
+
+  return url.protocol === 'http:' || url.protocol === 'https:';
 }
 
 export function setAuth(configuration, manualAuth) {
