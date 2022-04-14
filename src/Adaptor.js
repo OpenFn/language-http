@@ -122,15 +122,11 @@ function handleCallback(state, callback) {
  * Make a GET request
  * @public
  * @example
- *  get("/myendpoint", {
- *      query: {foo: "bar", a: 1},
- *      headers: {"content-type": "application/json"},
- *      authentication: {username: "user", password: "pass"}
- *    },
- *    function(state) {
- *      return state;
- *    }
- *  )
+ *  get('/myEndpoint', {
+ *    query: {foo: 'bar', a: 1},
+ *    headers: {'content-type': 'application/json'},
+ *    authentication: {username: 'user', password: 'pass'}
+ *  })
  * @constructor
  * @param {string} path - Path to resource
  * @param {object} params - Query, Headers and Authentication parameters
@@ -139,17 +135,17 @@ function handleCallback(state, callback) {
  */
 export function get(path, params, callback) {
   return state => {
-    path = expandReferences(path)(state);
-    params = http.expandRequestReferences(params)(state);
+    const resolvedPath = expandReferences(path)(state);
+    const resolvedParams = http.expandRequestReferences(params)(state);
 
-    const url = setUrl(state.configuration, path);
+    const url = setUrl(state.configuration, resolvedPath);
 
     const auth = setAuth(
       state.configuration,
-      params?.authentication ?? params?.auth
+      resolvedParams?.authentication ?? resolvedParams?.auth
     );
 
-    const config = mapToAxiosConfig({ ...params, url, auth });
+    const config = mapToAxiosConfig({ ...resolvedParams, url, auth });
 
     return http
       .get(config)(state)
@@ -162,15 +158,11 @@ export function get(path, params, callback) {
  * Make a POST request
  * @public
  * @example
- *  post("/myendpoint", {
- *      body: {"foo": "bar"},
- *      headers: {"content-type": "application/json"},
- *      authentication: {username: "user", password: "pass"},
- *    },
- *    function(state) {
- *      return state;
- *    }
- *  )
+ *  post('/myEndpoint', {
+ *    body: {'foo': 'bar'},
+ *    headers: {'content-type': 'application/json'},
+ *    authentication: {username: 'user', password: 'pass'}
+ *  })
  * @constructor
  * @param {string} path - Path to resource
  * @param {object} params - Body, Query, Headers and Authentication parameters
@@ -179,17 +171,17 @@ export function get(path, params, callback) {
  */
 export function post(path, params, callback) {
   return state => {
-    path = expandReferences(path)(state);
-    params = http.expandRequestReferences(params)(state);
+    const resolvedPath = expandReferences(path)(state);
+    const resolvedParams = http.expandRequestReferences(params)(state);
 
-    const url = setUrl(state.configuration, path);
+    const url = setUrl(state.configuration, resolvedPath);
 
     const auth = setAuth(
       state.configuration,
-      params?.authentication ?? params?.auth
+      resolvedParams?.authentication ?? resolvedParams?.auth
     );
 
-    const config = mapToAxiosConfig({ ...params, url, auth });
+    const config = mapToAxiosConfig({ ...resolvedParams, url, auth });
 
     return http
       .post(config)(state)
@@ -202,15 +194,11 @@ export function post(path, params, callback) {
  * Make a PUT request
  * @public
  * @example
- *  put("/myendpoint", {
- *      body: {"foo": "bar"},
- *      headers: {"content-type": "application/json"},
- *      authentication: {username: "user", password: "pass"},
- *    },
- *    function(state) {
- *      return state;
- *    }
- *  )
+ *  put('/myEndpoint', {
+ *    body: {'foo': 'bar'},
+ *    headers: {'content-type': 'application/json'},
+ *    authentication: {username: 'user', password: 'pass'}
+ *  })
  * @constructor
  * @param {string} path - Path to resource
  * @param {object} params - Body, Query, Headers and Auth parameters
@@ -219,17 +207,17 @@ export function post(path, params, callback) {
  */
 export function put(path, params, callback) {
   return state => {
-    path = expandReferences(path)(state);
-    params = http.expandRequestReferences(params)(state);
+    const resolvedPath = expandReferences(path)(state);
+    const resolvedParams = http.expandRequestReferences(params)(state);
 
-    const url = setUrl(state.configuration, path);
+    const url = setUrl(state.configuration, resolvedPath);
 
     const auth = setAuth(
       state.configuration,
-      params?.authentication ?? params?.auth
+      resolvedParams?.authentication ?? resolvedParams?.auth
     );
 
-    const config = mapToAxiosConfig({ ...params, url, auth });
+    const config = mapToAxiosConfig({ ...resolvedParams, url, auth });
 
     return http
       .put(config)(state)
@@ -242,15 +230,11 @@ export function put(path, params, callback) {
  * Make a PATCH request
  * @public
  * @example
- *  patch("/myendpoint", {
- *      body: {"foo": "bar"},
- *      headers: {"content-type": "application/json"},
- *      authentication: {username: "user", password: "pass"},
- *    },
- *    function(state) {
- *      return state;
- *    }
- *  )
+ *  patch('/myEndpoint', {
+ *    body: {'foo': 'bar'},
+ *    headers: {'content-type': 'application/json'},
+ *    authentication: {username: 'user', password: 'pass'}
+ *  })
  * @constructor
  * @param {string} path - Path to resource
  * @param {object} params - Body, Query, Headers and Auth parameters
@@ -259,17 +243,17 @@ export function put(path, params, callback) {
  */
 export function patch(path, params, callback) {
   return state => {
-    path = expandReferences(path)(state);
-    params = http.expandRequestReferences(params)(state);
+    const resolvedPath = expandReferences(path)(state);
+    const resolvedParams = http.expandRequestReferences(params)(state);
 
-    const url = setUrl(state.configuration, path);
+    const url = setUrl(state.configuration, resolvedPath);
 
     const auth = setAuth(
       state.configuration,
-      params?.authentication ?? params?.auth
+      resolvedParams?.authentication ?? resolvedParams?.auth
     );
 
-    const config = mapToAxiosConfig({ ...params, url, auth });
+    const config = mapToAxiosConfig({ ...resolvedParams, url, auth });
 
     return http
       .patch(config)(state)
@@ -282,15 +266,9 @@ export function patch(path, params, callback) {
  * Make a DELETE request
  * @public
  * @example
- *  del("/myendpoint", {
- *      body: {"foo": "bar"},
- *      headers: {"content-type": "application/json"},
- *      authentication: {username: "user", password: "pass"},
- *    },
- *    function(state) {
- *      return state;
- *    }
- *  )
+ *  del(`/myendpoint/${state => state.data.id}`, {
+ *    headers: {'content-type': 'application/json'}
+ *  })
  * @constructor
  * @param {string} path - Path to resource
  * @param {object} params - Body, Query, Headers and Auth parameters
@@ -299,17 +277,17 @@ export function patch(path, params, callback) {
  */
 export function del(path, params, callback) {
   return state => {
-    path = expandReferences(path)(state);
-    params = http.expandRequestReferences(params)(state);
+    const resolvedPath = expandReferences(path)(state);
+    const resolvedParams = http.expandRequestReferences(params)(state);
 
-    const url = setUrl(state.configuration, path);
+    const url = setUrl(state.configuration, resolvedPath);
 
     const auth = setAuth(
       state.configuration,
-      params?.authentication ?? params?.auth
+      resolvedParams?.authentication ?? resolvedParams.auth
     );
 
-    const config = mapToAxiosConfig({ ...params, url, auth });
+    const config = mapToAxiosConfig({ ...resolvedParams, url, auth });
 
     return http
       .delete(config)(state)
@@ -405,11 +383,11 @@ export function parseCSV(target, config) {
  */
 export function request(params) {
   return state => {
-    params = http.expandRequestReferences(params)(state);
+    const resolvedParams = http.expandRequestReferences(params)(state);
 
     return new Promise((resolve, reject) => {
-      nodeRequest(params, (error, response, body) => {
-        error = assembleError({ error, response, params });
+      nodeRequest(resolvedParams, (error, response, body) => {
+        error = assembleError({ error, response, resolvedParams });
         error && reject(error);
 
         console.log(
@@ -424,6 +402,7 @@ export function request(params) {
 
 export {
   alterState,
+  arrayToString,
   combine,
   dataPath,
   dataValue,
@@ -433,7 +412,11 @@ export {
   fields,
   fn,
   http,
+  humanProper,
   lastReferenceValue,
   merge,
+  scrubEmojis,
   sourceValue,
+  splitKeys,
+  toArray,
 } from '@openfn/language-common';

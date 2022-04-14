@@ -1,4 +1,5 @@
 import Adaptor from '../src';
+import { each } from '@openfn/language-common';
 import { expect } from 'chai';
 import nock from 'nock';
 import { setUrl } from '../src/Utils';
@@ -442,6 +443,49 @@ describe('get()', () => {
 
     expect(error.response.status).to.eql(500);
   });
+
+  it('can be called inside an each block', async () => {
+    nock('https://www.repeat.com')
+      .get('/api/fake-json')
+      .times(3)
+      .reply(200, function (url, body) {
+        return body;
+      });
+
+    const state = {
+      configuration: {},
+      things: [
+        { name: 'a', age: 42 },
+        { name: 'b', age: 83 },
+        { name: 'c', age: 112 },
+      ],
+      replies: [],
+    };
+
+    const finalState = await execute(
+      each(
+        '$.things[*]',
+        get(
+          'https://www.repeat.com/api/fake-json',
+          {
+            body: state => state.data,
+          },
+          next => {
+            next.replies.push(next.response.config.data);
+            return next;
+          }
+        )
+      )
+    )(state);
+
+    console.log(finalState.replies);
+
+    expect(finalState.replies).to.eql([
+      '{"name":"a","age":42}',
+      '{"name":"b","age":83}',
+      '{"name":"c","age":112}',
+    ]);
+  });
 });
 
 describe('post', () => {
@@ -532,6 +576,49 @@ describe('post', () => {
     );
   });
 
+  it('can be called inside an each block', async () => {
+    nock('https://www.repeat.com')
+      .post('/api/fake-json')
+      .times(3)
+      .reply(200, function (url, body) {
+        return body;
+      });
+
+    const state = {
+      configuration: {},
+      things: [
+        { name: 'a', age: 42 },
+        { name: 'b', age: 83 },
+        { name: 'c', age: 112 },
+      ],
+      replies: [],
+    };
+
+    const finalState = await execute(
+      each(
+        '$.things[*]',
+        post(
+          'https://www.repeat.com/api/fake-json',
+          {
+            body: state => state.data,
+          },
+          next => {
+            next.replies.push(next.response.config.data);
+            return next;
+          }
+        )
+      )
+    )(state);
+
+    console.log(finalState.replies);
+
+    expect(finalState.replies).to.eql([
+      '{"name":"a","age":42}',
+      '{"name":"b","age":83}',
+      '{"name":"c","age":112}',
+    ]);
+  });
+
   it('can set successCodes on the request', async () => {
     let data = {
       id: 'fake_id',
@@ -576,6 +663,49 @@ describe('put', () => {
     expect(finalState.data.statusCode).to.eql(200);
     expect(finalState.data.body).to.eql({ name: 'New name' });
   });
+
+  it('can be called inside an each block', async () => {
+    nock('https://www.repeat.com')
+      .put('/api/fake-json')
+      .times(3)
+      .reply(200, function (url, body) {
+        return body;
+      });
+
+    const state = {
+      configuration: {},
+      things: [
+        { name: 'a', age: 42 },
+        { name: 'b', age: 83 },
+        { name: 'c', age: 112 },
+      ],
+      replies: [],
+    };
+
+    const finalState = await execute(
+      each(
+        '$.things[*]',
+        put(
+          'https://www.repeat.com/api/fake-json',
+          {
+            body: state => state.data,
+          },
+          next => {
+            next.replies.push(next.response.config.data);
+            return next;
+          }
+        )
+      )
+    )(state);
+
+    console.log(finalState.replies);
+
+    expect(finalState.replies).to.eql([
+      '{"name":"a","age":42}',
+      '{"name":"b","age":83}',
+      '{"name":"c","age":112}',
+    ]);
+  });
 });
 
 describe('patch', () => {
@@ -598,6 +728,49 @@ describe('patch', () => {
 
     expect(finalState.data.statusCode).to.eql(200);
     expect(finalState.data.body).to.eql({ id: 6, name: 'New name' });
+  });
+
+  it('can be called inside an each block', async () => {
+    nock('https://www.repeat.com')
+      .patch('/api/fake-json')
+      .times(3)
+      .reply(200, function (url, body) {
+        return body;
+      });
+
+    const state = {
+      configuration: {},
+      things: [
+        { name: 'a', age: 42 },
+        { name: 'b', age: 83 },
+        { name: 'c', age: 112 },
+      ],
+      replies: [],
+    };
+
+    const finalState = await execute(
+      each(
+        '$.things[*]',
+        patch(
+          'https://www.repeat.com/api/fake-json',
+          {
+            body: state => state.data,
+          },
+          next => {
+            next.replies.push(next.response.config.data);
+            return next;
+          }
+        )
+      )
+    )(state);
+
+    console.log(finalState.replies);
+
+    expect(finalState.replies).to.eql([
+      '{"name":"a","age":42}',
+      '{"name":"b","age":83}',
+      '{"name":"c","age":112}',
+    ]);
   });
 });
 
@@ -622,6 +795,49 @@ describe('delete', () => {
     )(state);
 
     expect(finalState.data).to.eql({});
+  });
+
+  it('can be called inside an each block', async () => {
+    nock('https://www.repeat.com')
+      .delete('/api/fake-json')
+      .times(3)
+      .reply(200, function (url, body) {
+        return body;
+      });
+
+    const state = {
+      configuration: {},
+      things: [
+        { name: 'a', age: 42 },
+        { name: 'b', age: 83 },
+        { name: 'c', age: 112 },
+      ],
+      replies: [],
+    };
+
+    const finalState = await execute(
+      each(
+        '$.things[*]',
+        del(
+          'https://www.repeat.com/api/fake-json',
+          {
+            body: state => state.data,
+          },
+          next => {
+            next.replies.push(next.response.config.data);
+            return next;
+          }
+        )
+      )
+    )(state);
+
+    console.log(finalState.replies);
+
+    expect(finalState.replies).to.eql([
+      '{"name":"a","age":42}',
+      '{"name":"b","age":83}',
+      '{"name":"c","age":112}',
+    ]);
   });
 });
 
