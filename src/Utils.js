@@ -31,7 +31,6 @@ export function setAuth(configuration, manualAuth) {
     return {
       username: configuration.username,
       password: configuration.password,
-      sendImmediately: configuration.authType != 'digest',
     };
   else return null;
 }

@@ -11,7 +11,6 @@ Language Pack for building expressions and operations to make HTTP calls.
   "username": "taylor@openfn.org",
   "password": "supersecret",
   "baseUrl": "https://instance_name.surveycto.com",
-  "authType": "digest"
 }
 ```
 
