@@ -1,4 +1,9 @@
-# Language HTTP [![Build Status](https://travis-ci.org/OpenFn/language-http.svg?branch=master)](https://travis-ci.org/OpenFn/language-http)
+# _⚠️ MOVED TO [OpenFn/adaptors](https://github.com/OpenFn/adaptors)! ⚠️_
+
+**N.B.: New versions are available at:
+https://github.com/OpenFn/adaptors/tree/main/packages/http**
+
+# Language HTTP (Archived)
 
 Language Pack for building expressions and operations to make HTTP calls.
 
@@ -15,6 +20,7 @@ Language Pack for building expressions and operations to make HTTP calls.
 ```
 
 ### Get data
+
 This helper function allows the use of a get method to fetch data. You can specify a query string for filter.
 
 ```js
@@ -32,6 +38,7 @@ get(
 ```
 
 ### Post existing data
+
 Send some data to an existing endpoint.
 
 ```js
@@ -114,6 +121,7 @@ parseCSV('/home/user/someData.csv', {
   header: false,
 });
 ```
+
 ### Sample parse local CSV file
 
 ```js
